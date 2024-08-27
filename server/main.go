@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -25,10 +26,20 @@ type Entry struct {
 func postHabit(c *gin.Context) {
 	var habit Habit
 	if err := c.BindJSON(&habit); err != nil {
-		return // TODO
+		return // TODO 400 Bad Request
 	}
 
-	// TODO: write to db
+	// TODO sanitize input
+	var id int
+	err := db.QueryRow(context.TODO(), "INSERT INTO habit(name) VALUES($1) RETURNING id", habit.Name).Scan(&id)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Wrote habit: %s\n", id)
+	habit.ID = id
+	c.IndentedJSON(http.StatusCreated, habit)
+
 }
 
 func getHabitByID(c *gin.Context) {
