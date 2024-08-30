@@ -6,34 +6,28 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
+	"github.com/tneuqole/habitmap/internal/database"
+	"github.com/tneuqole/habitmap/internal/model"
 )
 
-type Habit struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
 type HabitHandler struct {
-	Conn *pgx.Conn
+	DB database.Database
 }
 
 func (h HabitHandler) PostHabit(c echo.Context) error {
 	// TODO validate Content-Type
-	var habit Habit
+	var habit model.Habit
 	if err := c.Bind(&habit); err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
 
 	// TODO sanitize/validate input
-	var id int
-	err := h.Conn.QueryRow(context.TODO(), "INSERT INTO habit(name) VALUES($1) RETURNING id", habit.Name).Scan(&id)
+	err := h.DB.CreateHabit(context.TODO(), &habit)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("Error reading from database: %s", err))
 	}
 
-	habit.ID = id
 	log.Printf("Wrote habit: %+v\n", habit)
 	return c.JSONPretty(http.StatusCreated, habit, "  ")
 }
@@ -41,8 +35,7 @@ func (h HabitHandler) PostHabit(c echo.Context) error {
 func (h HabitHandler) GetHabitByID(c echo.Context) error {
 	id := c.Param("id")
 
-	var habit Habit
-	err := h.Conn.QueryRow(context.TODO(), "SELECT * FROM habit WHERE id = $1", id).Scan(&habit.ID, &habit.Name)
+	habit, err := h.DB.GetHabitByID(context.TODO(), id)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("Error reading from database: %s", err))
 	}

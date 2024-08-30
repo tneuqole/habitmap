@@ -1,16 +1,16 @@
 services:
   postgres:
     image: postgres:latest
-    container_name: heatmap_postgres
+    container_name: habitmap_postgres
     environment:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: heatmap
+      POSTGRES_DB: habitmap
     ports:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - $PWD/sql:/sql
+      - $PWD/scripts:/scripts
 
 volumes:
   pgdata:

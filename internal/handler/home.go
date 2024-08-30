@@ -2,8 +2,8 @@ package handler
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/tneuqole/heatmap/internal/util"
-	"github.com/tneuqole/heatmap/template"
+	"github.com/tneuqole/habitmap/internal/template"
+	"github.com/tneuqole/habitmap/internal/util"
 )
 
 type HomeHandler struct{}

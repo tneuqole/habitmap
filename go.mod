@@ -1,4 +1,4 @@
-module github.com/tneuqole/heatmap
+module github.com/tneuqole/habitmap
 
 go 1.23.0
 
