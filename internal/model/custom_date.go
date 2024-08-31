@@ -50,3 +50,7 @@ func (d *CustomDate) Scan(v interface{}) error {
 func (d CustomDate) String() string {
 	return time.Time(d).Format(DateFormat)
 }
+
+func (d CustomDate) Time() time.Time {
+	return time.Time(d)
+}

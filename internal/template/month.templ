@@ -1,0 +1,38 @@
+package template
+
+import (
+	"github.com/tneuqole/habitmap/internal/model"
+	"github.com/tneuqole/habitmap/internal/util"
+	"time"
+)
+
+templ Month(t time.Time, entries []model.Entry) {
+	<div>
+		<table>
+			<thead>
+				<tr>
+					<th>S</th>
+					<th>M</th>
+					<th>T</th>
+					<th>W</th>
+					<th>T</th>
+					<th>F</th>
+					<th>S</th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, week := range util.GenerateMonth(t, entries) {
+					<tr>
+						for _, day := range week {
+							if day == "" {
+								<td></td>
+							} else {
+								<td>{ day } </td>
+							}
+						}
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}

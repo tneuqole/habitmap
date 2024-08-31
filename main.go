@@ -26,10 +26,11 @@ func main() {
 
 	habitHandler := handler.HabitHandler{DB: db}
 	e.POST("/habit", habitHandler.PostHabit)
-	e.GET("/habit/:id", habitHandler.GetHabitByID)
+	e.GET("/habit/:id", habitHandler.GetHabit)
 
 	entryHandler := handler.EntryHandler{DB: db}
 	e.POST("/entry", entryHandler.PostEntry)
+	e.DELETE("/entry/:id", entryHandler.DeleteEntry)
 	e.GET("/entry", entryHandler.GetEntries)
 
 	e.Logger.Fatal(e.Start(":8080"))

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/tneuqole/habitmap/internal/database"
@@ -34,15 +35,19 @@ func (h EntryHandler) PostEntry(c echo.Context) error {
 	return c.JSONPretty(http.StatusCreated, entry, "  ")
 }
 
-func (h EntryHandler) GetEntries(c echo.Context) error {
-	var queryParams model.EntryDateRangeQuery
-	if err := c.Bind(&queryParams); err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+func (h EntryHandler) DeleteEntry(c echo.Context) error {
+	id := c.Param("id")
+	err := h.DB.DeleteEntry(context.TODO(), id)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("Error deleting entry: %s", err))
 	}
 
-	log.Printf("Got query parameters: %+v\n", queryParams)
+	return c.NoContent(http.StatusNoContent)
+}
 
-	entries, err := h.DB.GetEntriesByDateRange(context.TODO(), queryParams)
+func (h EntryHandler) GetEntries(c echo.Context) error {
+	id, _ := strconv.Atoi(c.QueryParam("habitId"))
+	entries, err := h.DB.GetAllEntries(context.TODO(), id)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("Error collecting entries: %s", err))
 	}
