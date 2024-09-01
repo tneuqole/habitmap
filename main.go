@@ -1,22 +1,21 @@
 package main
 
 import (
-	"context"
+	"database/sql"
 	"log"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/tneuqole/habitmap/internal/database"
 	"github.com/tneuqole/habitmap/internal/handler"
 )
 
 func main() {
-	ctx := context.TODO()
-	conn, err := pgx.Connect(ctx, "postgresql://myuser:password@localhost:5433/habitmap?sslmode=disable")
+	conn, err := sql.Open("sqlite3", "./habitmap.db")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close(ctx)
+	defer conn.Close()
 
 	db := database.Database{Conn: conn}
 	e := echo.New()

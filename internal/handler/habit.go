@@ -80,5 +80,6 @@ func (h HabitHandler) GetHabit(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("Error reading from database: %s", err))
 	}
 
+	// TODO handle 0 entries
 	return util.Render(c, template.Month(entries[0].Date.Time(), entries))
 }

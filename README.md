@@ -7,16 +7,10 @@ Heatmap esque webapp for habit tracking
 Some helpful commands
 
 ```zsh
-# Start database
-docker-compose up -d
+# create fresh database
+rm habitmap.db
+sqlite3 habitmap.db < scripts/db_init.sql
 
-# Initial database setup
-docker-compose exec -T postgres psql -U myuser -d habitmap -f scripts/db_init.sql
-docker-compose exec -T postgres psql -U myuser -d habitmap -f scripts/populate_tables.sql
-
-# Remove database
-docker-compose down -v
-
-# Access database from the terminal
-docker-compose exec postgres psql -U myuser -d habitmap
+# access from terminal
+sqlite3 habitmap.db
 ```

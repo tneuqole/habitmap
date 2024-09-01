@@ -1,10 +1,10 @@
 create table habit (
-	id serial primary key,
+	id integer primary key autoincrement,
 	name varchar(100)
 );
 
 create table entry (
-	id serial primary key,
+	id integer primary key autoincrement,
 	habit_id int,
 	entry_date date,
 
