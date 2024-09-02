@@ -1,9 +1,17 @@
 package template
 
 templ Base() {
-	<html>
-		<head></head>
-		<body>
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<title>habitmap</title>
+			<link rel="icon" type="image/x-icon" href="/public/favicon.ico"/>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link rel="stylesheet" href="/public/app.css"/>
+			<script src="https://unpkg.com/htmx.org@2.0.2"></script>
+		</head>
+		<body class="antialiased">
 			{ children... }
 		</body>
 	</html>

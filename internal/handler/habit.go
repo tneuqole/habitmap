@@ -81,5 +81,5 @@ func (h HabitHandler) GetHabit(c echo.Context) error {
 	}
 
 	// TODO handle 0 entries
-	return util.Render(c, template.Month(entries[0].Date.Time(), entries))
+	return util.Render(c, template.Month(entries[0].Date.Time(), params.HabitID, entries))
 }

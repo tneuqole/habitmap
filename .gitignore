@@ -27,3 +27,4 @@ go.work.sum
 TODO.md
 .DS_Store
 habitmap.db
+node_modules

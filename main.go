@@ -19,6 +19,7 @@ func main() {
 
 	db := database.Database{Conn: conn}
 	e := echo.New()
+	e.Static("/public", "public")
 
 	homeHandler := handler.HomeHandler{}
 	e.GET("/", homeHandler.GetHome)
