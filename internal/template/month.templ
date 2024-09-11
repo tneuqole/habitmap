@@ -7,43 +7,41 @@ import (
 	"time"
 )
 
+var tdCSS = "border-slate-400 border border-solid rounded-md p-5 aspect-square"
+var thCSS = "aspect-square"
+var trCSS = ""
+
 templ Month(t time.Time, habitID int, entries []model.Entry) {
 	@Base() {
-		<div data-habit-id={ strconv.Itoa(habitID) } class="flex flex-col border rounded-md">
-			<div class="overflow-x-auto">
-				<div class="inline-block min-w-full">
-					<div class="overflow-hidden">
-						<table class="min-w-full divide-y">
-							<thead>
-								<tr>
-									<th>S</th>
-									<th>M</th>
-									<th>T</th>
-									<th>W</th>
-									<th>T</th>
-									<th>F</th>
-									<th>S</th>
-								</tr>
-							</thead>
-							<tbody>
-								for _, week := range util.GenerateMonth(t, entries) {
-									<tr>
-										for _, entry := range week {
-											if entry.ID != -1 && entry.Date.String() != "0001-01-01" {
-												<td data-entry-id={ strconv.Itoa(entry.ID) } style="background-color:green">{ strconv.Itoa(entry.Date.Time().Day()) }</td>
-											} else if entry.Date.String() != "0001-01-01" {
-												<td style="background-color:red">{ strconv.Itoa(entry.Date.Time().Day()) }</td>
-											} else {
-												<td></td>
-											}
-										}
-									</tr>
+		<div data-habit-id={ strconv.Itoa(habitID) } class="m-1">
+			<table class="table-auto border-separate border-spacing-1 border border-solid rounded-md m-1">
+				<thead>
+					<tr class={ trCSS }>
+						<th class={ thCSS }>S</th>
+						<th class={ thCSS }>M</th>
+						<th class={ thCSS }>T</th>
+						<th class={ thCSS }>W</th>
+						<th class={ thCSS }>T</th>
+						<th class={ thCSS }>F</th>
+						<th class={ thCSS }>S</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, week := range util.GenerateMonth(t, entries) {
+						<tr class={ trCSS }>
+							for _, entry := range week {
+								if entry.ID != -1 && entry.Date.String() != "0001-01-01" {
+									<td class={ tdCSS, "bg-red-400" } title={ entry.Date.String() } data-entry-id={ strconv.Itoa(entry.ID) }></td>
+								} else if entry.Date.String() != "0001-01-01" {
+									<td class={ tdCSS } title={ entry.Date.String() }></td>
+								} else {
+									<td class="aspect-square"></td>
 								}
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div>
+							}
+						</tr>
+					}
+				</tbody>
+			</table>
 		</div>
 	}
 }
