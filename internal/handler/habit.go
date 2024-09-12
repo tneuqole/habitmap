@@ -22,13 +22,13 @@ func (h HabitHandler) PostHabit(c echo.Context) error {
 	// TODO validate Content-Type
 	var habit model.Habit
 	if err := c.Bind(&habit); err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	// TODO sanitize/validate input
 	err := h.DB.CreateHabit(context.TODO(), &habit)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("Error reading from database: %s", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error reading from database: %s", err))
 	}
 
 	log.Printf("Wrote habit: %+v\n", habit)
@@ -40,7 +40,7 @@ func (h HabitHandler) GetHabitByID(c echo.Context) error {
 
 	habit, err := h.DB.GetHabitByID(context.TODO(), id)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("Error reading from database: %s", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error reading from database: %s", err))
 	}
 
 	return c.JSONPretty(http.StatusOK, habit, "  ")
@@ -55,11 +55,11 @@ type QueryParams struct {
 func (h HabitHandler) GetHabit(c echo.Context) error {
 	var params QueryParams
 	if err := c.Bind(&params); err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	if params.Month != 0 && params.Year == 0 {
-		return c.String(http.StatusBadRequest, "If specifying month, must specify year")
+		return echo.NewHTTPError(http.StatusBadRequest, "If specifying month, must specify year")
 	}
 
 	var err error
@@ -77,7 +77,7 @@ func (h HabitHandler) GetHabit(c echo.Context) error {
 	}
 
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("Error reading from database: %s", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error reading from database: %s", err))
 	}
 
 	// TODO handle 0 entries

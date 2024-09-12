@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-var tdCSS = "border-slate-400 border border-solid rounded-md p-5 aspect-square"
 var thCSS = "aspect-square"
 var trCSS = ""
 
 templ Month(t time.Time, habitID int, entries []model.Entry) {
 	@Base() {
-		<div data-habit-id={ strconv.Itoa(habitID) } class="m-1">
-			<table class="table-auto border-separate border-spacing-1 border border-solid rounded-md m-1">
+		<div habit-id={ strconv.Itoa(habitID) } class="flex flex-col items-center">
+			<h1 class="text-2xl font-medium">{ t.Month().String() }</h1>
+			<table class="m-1 table-auto border-separate border-spacing-1 border border-solid rounded-md">
 				<thead>
 					<tr class={ trCSS }>
 						<th class={ thCSS }>S</th>
@@ -30,13 +30,7 @@ templ Month(t time.Time, habitID int, entries []model.Entry) {
 					for _, week := range util.GenerateMonth(t, entries) {
 						<tr class={ trCSS }>
 							for _, entry := range week {
-								if entry.ID != -1 && entry.Date.String() != "0001-01-01" {
-									<td class={ tdCSS, "bg-red-400" } title={ entry.Date.String() } data-entry-id={ strconv.Itoa(entry.ID) }></td>
-								} else if entry.Date.String() != "0001-01-01" {
-									<td class={ tdCSS } title={ entry.Date.String() }></td>
-								} else {
-									<td class="aspect-square"></td>
-								}
+								@Entry(entry)
 							}
 						</tr>
 					}

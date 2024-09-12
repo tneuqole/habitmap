@@ -44,9 +44,10 @@ func (db Database) CreateEntry(ctx context.Context, entry *model.Entry) error {
 	return nil
 }
 
-func (db Database) DeleteEntry(ctx context.Context, id string) error {
-	_, err := db.Conn.Exec("DELETE FROM entry WHERE id = $1", id)
-	return err
+func (db Database) DeleteEntry(ctx context.Context, id string) (model.Entry, error) {
+	entry := model.NewEntry()
+	err := db.Conn.QueryRow("DELETE FROM entry WHERE id = $1 RETURNING habit_id, entry_date", id).Scan(&entry.HabitID, &entry.Date)
+	return entry, err
 }
 
 func (db Database) GetEntriesByDateRange(ctx context.Context, habitID int, startDate, endDate time.Time) ([]model.Entry, error) {

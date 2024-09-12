@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/a-h/templ"
@@ -15,13 +14,13 @@ func Render(c echo.Context, component templ.Component) error {
 
 // TODO entries should be sorted by date
 func GenerateMonth(t time.Time, entries []model.Entry) [][]model.Entry {
-	fmt.Printf("creating month for date: %s\n", t)
 	var month [][]model.Entry
 	var week = make([]model.Entry, 7)
 
 	date := t.AddDate(0, 0, -t.Day()+1)
 	daysInMonth := date.AddDate(0, 1, -1).Day()
 
+	habitID := entries[0].HabitID
 	entryIdx := 0
 	dayOfWeek := int(date.Weekday())
 	for day := date.Day(); day <= daysInMonth; {
@@ -30,11 +29,10 @@ func GenerateMonth(t time.Time, entries []model.Entry) [][]model.Entry {
 				week[dayOfWeek] = entries[entryIdx]
 				entryIdx++
 			} else {
-				week[dayOfWeek] = model.Entry{
-					ID:      -1,
-					HabitID: -1,
-					Date:    model.CustomDate(date),
-				}
+				entry := model.NewEntry()
+				entry.HabitID = habitID
+				entry.Date = model.CustomDate(date)
+				week[dayOfWeek] = entry
 			}
 			date = date.AddDate(0, 0, 1)
 			day++
@@ -44,6 +42,5 @@ func GenerateMonth(t time.Time, entries []model.Entry) [][]model.Entry {
 		dayOfWeek = 0
 	}
 
-	fmt.Println(month)
 	return month
 }

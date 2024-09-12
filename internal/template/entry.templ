@@ -1,0 +1,32 @@
+package template
+
+import (
+	"github.com/tneuqole/habitmap/internal/model"
+	"strconv"
+)
+
+var tdCSS = "border-slate-400 border border-solid rounded-md p-5 aspect-square"
+
+templ Entry(entry model.Entry) {
+	if entry.ID != -1 && entry.Date.String() != "0001-01-01" {
+		<td
+			class={ tdCSS + " bg-red-400 hover:bg-red-200" }
+			title={ entry.Date.String() }
+			entry-id={ strconv.Itoa(entry.ID) }
+			hx-delete={ "/entry/" + strconv.Itoa(entry.ID) }
+			hx-trigger="click"
+			hx-swap="outerHTML"
+		></td>
+	} else if entry.Date.String() != "0001-01-01" {
+		<td
+			class={ tdCSS + " bg-slate-100 hover:bg-red-200" }
+			title={ entry.Date.String() }
+			hx-post="/entry"
+			hx-vals={ "{\"habitId\": \"" + strconv.Itoa(entry.HabitID) + "\", \"date\": \"" + entry.Date.String() + "\"}" }
+			hx-trigger="click"
+			hx-swap="outerHTML"
+		></td>
+	} else {
+		<td class="aspect-square"></td>
+	}
+}

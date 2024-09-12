@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/tneuqole/habitmap/internal/database"
 	"github.com/tneuqole/habitmap/internal/handler"
@@ -19,6 +20,7 @@ func main() {
 
 	db := database.Database{Conn: conn}
 	e := echo.New()
+	e.Use(middleware.Logger())
 	e.Static("/public", "public")
 
 	homeHandler := handler.HomeHandler{}

@@ -5,11 +5,6 @@ import "github.com/tneuqole/habitmap/internal/model"
 
 templ Habit(entries []model.Entry) {
 	@Base() {
-		<div>
-			for _, entry := range entries {
-				<div>{ entry.Date.String() }</div>
-				<br/>
-			}
-		</div>
+		<div></div>
 	}
 }
