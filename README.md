@@ -1,2 +1,3 @@
-# heatmap
-Heatmap webapp for habit tracking
+# habitmap
+
+Heatmap esque webapp for habit tracking

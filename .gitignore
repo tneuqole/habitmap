@@ -23,3 +23,9 @@ go.work.sum
 
 # env file
 .env
+
+TODO.md
+.DS_Store
+habitmap.db
+node_modules
+tmp
