@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	conn, err := sql.Open("sqlite3", "./habitmap.db")
+	conn, err := sql.Open("sqlite3", "./habitmap.db") // TODO: probably shouldn't expose filename
 	if err != nil {
 		log.Fatal(err)
 	}

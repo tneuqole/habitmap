@@ -26,6 +26,6 @@ go.work.sum
 
 TODO.md
 .DS_Store
-habitmap.db
+*.db
 node_modules
 tmp
