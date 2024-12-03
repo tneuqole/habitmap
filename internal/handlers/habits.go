@@ -22,7 +22,13 @@ func NewHabitHandler(queries *model.Queries) *HabitHandler {
 }
 
 func (h *HabitHandler) GetHabits(c echo.Context) error {
-	return Render(c, templates.Habits())
+	habits, err := h.queries.GetHabits(c.Request().Context())
+	if err != nil {
+		return err
+	}
+
+	c.Logger().Info(habits)
+	return Render(c, templates.Habits(habits))
 }
 
 func (h *HabitHandler) GetNewHabitForm(c echo.Context) error {

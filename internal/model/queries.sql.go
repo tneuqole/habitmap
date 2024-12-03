@@ -92,6 +92,33 @@ func (q *Queries) GetHabit(ctx context.Context, id int64) (Habit, error) {
 	return i, err
 }
 
+const getHabits = `-- name: GetHabits :many
+SELECT id, name, created_at FROM habits
+`
+
+func (q *Queries) GetHabits(ctx context.Context) ([]Habit, error) {
+	rows, err := q.db.QueryContext(ctx, getHabits)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Habit
+	for rows.Next() {
+		var i Habit
+		if err := rows.Scan(&i.ID, &i.Name, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateHabit = `-- name: UpdateHabit :one
 UPDATE habits SET name = ? WHERE id = ? RETURNING id, name, created_at
 `

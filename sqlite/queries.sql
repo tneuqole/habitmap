@@ -4,6 +4,9 @@ INSERT INTO habits (name, created_at) VALUES (?, unixepoch()) RETURNING *;
 -- name: GetHabit :one
 SELECT * FROM habits WHERE id = ? LIMIT 1;
 
+-- name: GetHabits :many
+SELECT * FROM habits;
+
 -- name: UpdateHabit :one
 UPDATE habits SET name = ? WHERE id = ? RETURNING *;
 
