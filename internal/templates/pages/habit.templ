@@ -1,0 +1,13 @@
+package pages
+
+import (
+	"github.com/tneuqole/habitmap/internal/model"
+	"github.com/tneuqole/habitmap/internal/templates/components"
+	"github.com/tneuqole/habitmap/internal/templates/layouts"
+)
+
+templ Habit(habit model.Habit) {
+	@layouts.Base("Habit") {
+		@components.Habit(habit)
+	}
+}

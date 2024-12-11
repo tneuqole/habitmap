@@ -1,4 +1,6 @@
-package templates
+package layouts
+
+import "github.com/tneuqole/habitmap/internal/templates/components"
 
 templ Base(title string) {
 	<html lang="en">
@@ -10,7 +12,7 @@ templ Base(title string) {
 		</head>
 		<body class="flex flex-col min-h-screen">
 			<header>
-				@Nav()
+				@components.Nav()
 			</header>
 			<main class="flex-1 m-4">
 				{ children... }

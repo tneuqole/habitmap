@@ -32,7 +32,7 @@ func (h *HabitHandler) GetHabits(c echo.Context) error {
 }
 
 func (h *HabitHandler) GetNewHabitForm(c echo.Context) error {
-	return Render(c, templates.NewHabit(templates.NewHabitFormData{}))
+	return Render(c, templates.NewHabit(templates.HabitFormData{}))
 }
 
 type GetHabitParams struct {
@@ -53,12 +53,12 @@ func (h *HabitHandler) GetHabit(c echo.Context) error {
 	return Render(c, templates.HabitView(habit))
 }
 
-type PostHabitForm struct {
+type NewHabitForm struct {
 	Name string `form:"name" validate:"required,notblank,min=1,max=32"`
 }
 
 func (h *HabitHandler) PostHabit(c echo.Context) error {
-	form := PostHabitForm{}
+	form := NewHabitForm{}
 	if err := c.Bind(&form); err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (h *HabitHandler) PostHabit(c echo.Context) error {
 	err := validate.Struct(&form)
 	if err != nil {
 		errors := ParseValidationErrors(err)
-		data := templates.NewHabitFormData{
+		data := templates.HabitFormData{
 			Name:   form.Name,
 			Errors: errors,
 		}
