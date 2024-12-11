@@ -1,0 +1,12 @@
+package templates
+
+var linkCss = "text-gray-800 font-semibold text-lg hover:text-blue-600 transition"
+
+templ Nav() {
+	<nav class="bg-gray-300 shadow">
+		<div class="inline-flex items-center space-x-4 py-2 mx-4">
+			<div class="flex justify-center items-center w-10 h-10 bg-blue-500 rounded-full text-white text-2xl font-bold">H</div>
+			<a href="/habits" class={ linkCss }>Habits</a>
+		</div>
+	</nav>
+}
