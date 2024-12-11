@@ -1,6 +1,9 @@
 package templates
 
-import "github.com/tneuqole/habitmap/internal/model"
+import (
+	"github.com/tneuqole/habitmap/internal/model"
+	"fmt"
+)
 
 templ NewHabit(data NewHabitFormData) {
 	@Base("New Habit") {
@@ -33,10 +36,16 @@ templ Habits(habits []model.Habit) {
 	}
 }
 
+templ HabitView(habit model.Habit) {
+	@Base("Habit") {
+		@Habit(habit)
+	}
+}
+
 templ Habit(habit model.Habit) {
 	<div class="my-2">
 		<h1 class={ h1CSS }>
-			{ habit.Name }
+			<a href={ templ.URL(fmt.Sprintf("/habits/%d", habit.ID)) }>{ habit.Name }</a>
 		</h1>
 		<div class="py-2">TODO</div>
 	</div>

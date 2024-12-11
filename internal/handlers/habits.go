@@ -50,7 +50,7 @@ func (h *HabitHandler) GetHabit(c echo.Context) error {
 		return err
 	}
 
-	return Render(c, templates.Habit(habit))
+	return Render(c, templates.HabitView(habit))
 }
 
 type PostHabitForm struct {
