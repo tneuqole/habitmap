@@ -7,6 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/templates"
+	"github.com/tneuqole/habitmap/internal/templates/forms"
+	"github.com/tneuqole/habitmap/internal/templates/pages"
 )
 
 var validate = NewValidate()
@@ -28,11 +30,11 @@ func (h *HabitHandler) GetHabits(c echo.Context) error {
 	}
 
 	c.Logger().Info(habits)
-	return Render(c, templates.Habits(habits))
+	return Render(c, pages.Habits(habits))
 }
 
 func (h *HabitHandler) GetNewHabitForm(c echo.Context) error {
-	return Render(c, templates.NewHabit(templates.HabitFormData{}))
+	return Render(c, forms.HabitForm(templates.HabitFormData{}))
 }
 
 type GetHabitParams struct {
@@ -50,7 +52,7 @@ func (h *HabitHandler) GetHabit(c echo.Context) error {
 		return err
 	}
 
-	return Render(c, templates.HabitView(habit))
+	return Render(c, pages.Habit(habit))
 }
 
 type NewHabitForm struct {
@@ -70,7 +72,7 @@ func (h *HabitHandler) PostHabit(c echo.Context) error {
 			Name:   form.Name,
 			Errors: errors,
 		}
-		return Render(c, templates.NewHabit(data))
+		return Render(c, forms.HabitForm(data))
 	}
 
 	habit, err := h.queries.CreateHabit(c.Request().Context(), form.Name)
