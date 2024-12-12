@@ -33,10 +33,6 @@ func (h *HabitHandler) GetHabits(c echo.Context) error {
 	return Render(c, pages.Habits(habits))
 }
 
-func (h *HabitHandler) GetNewHabitForm(c echo.Context) error {
-	return Render(c, forms.HabitForm(templates.HabitFormData{}))
-}
-
 type GetHabitParams struct {
 	HabitID int64 `param:"id"`
 }
@@ -55,12 +51,16 @@ func (h *HabitHandler) GetHabit(c echo.Context) error {
 	return Render(c, pages.Habit(habit))
 }
 
-type NewHabitForm struct {
+func (h *HabitHandler) GetCreateHabitForm(c echo.Context) error {
+	return Render(c, forms.CreateHabit(templates.HabitFormData{}))
+}
+
+type CreateHabitForm struct {
 	Name string `form:"name" validate:"required,notblank,min=1,max=32"`
 }
 
 func (h *HabitHandler) PostHabit(c echo.Context) error {
-	form := NewHabitForm{}
+	form := CreateHabitForm{}
 	if err := c.Bind(&form); err != nil {
 		return err
 	}
@@ -72,10 +72,50 @@ func (h *HabitHandler) PostHabit(c echo.Context) error {
 			Name:   form.Name,
 			Errors: errors,
 		}
-		return Render(c, forms.HabitForm(data))
+		return Render(c, forms.CreateHabit(data))
 	}
 
 	habit, err := h.queries.CreateHabit(c.Request().Context(), form.Name)
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/habits/%d", habit.ID))
+}
+
+func (h *HabitHandler) GetUpdateHabitForm(c echo.Context) error {
+	params := GetHabitParams{}
+	if err := c.Bind(&params); err != nil {
+		return err
+	}
+	return Render(c, forms.UpdateHabit(templates.HabitFormData{ID: params.HabitID}))
+}
+
+type UpdateHabitForm struct {
+	ID int64 `param:"id"`
+	CreateHabitForm
+}
+
+func (h *HabitHandler) PostUpdateHabit(c echo.Context) error {
+	form := UpdateHabitForm{}
+	if err := c.Bind(&form); err != nil {
+		return err
+	}
+
+	err := validate.Struct(&form)
+	if err != nil {
+		errors := ParseValidationErrors(err)
+		data := templates.HabitFormData{
+			Name:   form.Name,
+			Errors: errors,
+		}
+		return Render(c, forms.UpdateHabit(data))
+	}
+
+	habit, err := h.queries.UpdateHabit(c.Request().Context(), model.UpdateHabitParams{
+		Name: form.Name,
+		ID:   form.ID,
+	})
 	if err != nil {
 		return err
 	}

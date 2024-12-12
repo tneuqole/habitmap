@@ -4,10 +4,16 @@ import (
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/templates/components"
 	"github.com/tneuqole/habitmap/internal/templates/layouts"
+	"fmt"
 )
 
 templ Habit(habit model.Habit) {
 	@layouts.Base("Habit") {
-		@components.Habit(habit)
+		<div class="flex flex-row justify-between">
+			<div class="">
+				@components.Habit(habit)
+			</div>
+			<a href={ templ.URL(fmt.Sprintf("/habits/%d/edit", habit.ID)) } class="w-10 self-start bg-blue-600 text-center text-white font-medium my-2 py-1 rounded-md hover:bg-blue-700 transition">Edit</a>
+		</div>
 	}
 }

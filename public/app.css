@@ -610,6 +610,10 @@ video {
   flex: 1 1 0%;
 }
 
+.flex-row {
+  flex-direction: row;
+}
+
 .flex-col {
   flex-direction: column;
 }
@@ -622,6 +626,10 @@ video {
   justify-content: center;
 }
 
+.justify-between {
+  justify-content: space-between;
+}
+
 .space-x-4 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(1rem * var(--tw-space-x-reverse));
@@ -630,6 +638,10 @@ video {
 
 .place-self-center {
   place-self: center;
+}
+
+.self-start {
+  align-self: flex-start;
 }
 
 .self-end {
