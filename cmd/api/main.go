@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"log"
 
 	"github.com/labstack/echo/v4"
@@ -12,7 +13,10 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("sqlite3", "./habitmap.db") // TODO: probably shouldn't expose filename
+	dbFile := flag.String("db", "habitmap.db", "sqlite database file")
+	flag.Parse()
+
+	db, err := sql.Open("sqlite3", *dbFile)
 	if err != nil {
 		log.Fatal(err)
 	}
