@@ -13,6 +13,19 @@ dev:
 run:
 	go run ./cmd/api
 
+.PHONY: lint
+lint:
+	golangci-lint run --fix ./...
+
+
+.PHONY: test
+test:
+	go test -race -cover ./... -coverprofile=coverage.out
+
+.PHONY: cov
+cov: test
+	go tool cover -html=coverage.out
+
 .PHONY: sql
 sql:
 	sqlite3 habitmap.db

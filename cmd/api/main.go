@@ -16,6 +16,11 @@ func main() {
 	dbFile := flag.String("db", "habitmap.db", "sqlite database file")
 	flag.Parse()
 
+	validate, err := handlers.NewValidate()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	db, err := sql.Open("sqlite3", *dbFile)
 	if err != nil {
 		log.Fatal(err)
@@ -32,7 +37,7 @@ func main() {
 
 	e.Static("/public", "public")
 
-	habitHandler := handlers.NewHabitHandler(queries)
+	habitHandler := handlers.NewHabitHandler(queries, validate)
 	e.GET("/habits", habitHandler.GetHabits)
 	e.GET("/habits/:id", habitHandler.GetHabit)
 	e.DELETE("/habits/:id", habitHandler.DeleteHabit)

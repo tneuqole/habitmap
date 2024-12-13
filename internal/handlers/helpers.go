@@ -13,17 +13,21 @@ func Render(c echo.Context, component templ.Component) error {
 	return component.Render(c.Request().Context(), c.Response())
 }
 
-func NewValidate() *validator.Validate {
+func NewValidate() (*validator.Validate, error) {
 	validate := validator.New()
-	validate.RegisterValidation("notblank", validators.NotBlank)
-	return validate
+	err := validate.RegisterValidation("notblank", validators.NotBlank)
+	if err != nil {
+		return nil, err
+	}
+
+	return validate, nil
 }
 
-func ParseValidationErrors(err error) map[string]string {
-	errors := make(map[string]string)
+func ParseValidationErrors(err any) map[string]string {
+	formErrors := make(map[string]string)
 
-	if _, ok := err.(validator.ValidationErrors); ok {
-		for _, fieldErr := range err.(validator.ValidationErrors) {
+	if valErrors, ok := err.(validator.ValidationErrors); ok {
+		for _, fieldErr := range valErrors {
 			var msg string
 			switch fieldErr.Tag() {
 			case "required":
@@ -43,9 +47,9 @@ func ParseValidationErrors(err error) map[string]string {
 			default:
 				msg = fmt.Sprintf("%s is invalid", fieldErr.Field())
 			}
-			errors[fieldErr.Field()] = msg
+			formErrors[fieldErr.Field()] = msg
 		}
 	}
 
-	return errors
+	return formErrors
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/templates"
@@ -11,15 +12,15 @@ import (
 	"github.com/tneuqole/habitmap/internal/templates/pages"
 )
 
-var validate = NewValidate()
-
 type HabitHandler struct {
-	queries *model.Queries
+	queries  *model.Queries
+	validate *validator.Validate
 }
 
-func NewHabitHandler(queries *model.Queries) *HabitHandler {
+func NewHabitHandler(queries *model.Queries, validate *validator.Validate) *HabitHandler {
 	return &HabitHandler{
-		queries: queries,
+		queries:  queries,
+		validate: validate,
 	}
 }
 
@@ -29,7 +30,6 @@ func (h *HabitHandler) GetHabits(c echo.Context) error {
 		return err
 	}
 
-	c.Logger().Info(habits)
 	return Render(c, pages.Habits(habits))
 }
 
@@ -81,7 +81,7 @@ func (h *HabitHandler) PostHabit(c echo.Context) error {
 		return err
 	}
 
-	err := validate.Struct(&form)
+	err := h.validate.Struct(&form)
 	if err != nil {
 		errors := ParseValidationErrors(err)
 		data := templates.HabitFormData{
@@ -118,7 +118,7 @@ func (h *HabitHandler) PostUpdateHabit(c echo.Context) error {
 		return err
 	}
 
-	err := validate.Struct(&form)
+	err := h.validate.Struct(&form)
 	if err != nil {
 		errors := ParseValidationErrors(err)
 		data := templates.HabitFormData{
