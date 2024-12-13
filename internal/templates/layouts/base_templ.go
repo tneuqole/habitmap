@@ -44,7 +44,7 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</title><meta charset=\"UTF-8\"><link rel=\"stylesheet\" href=\"/public/app.css\"><script src=\"https://unpkg.com/htmx.org@2.0.2\"></script></head><body class=\"flex flex-col min-h-screen\"><header>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</title><meta charset=\"UTF-8\"><link rel=\"stylesheet\" href=\"/public/app.css\"><script src=\"https://unpkg.com/htmx.org@2.0.2\"></script><script defer src=\"https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js\"></script></head><body class=\"flex flex-col min-h-screen\"><header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

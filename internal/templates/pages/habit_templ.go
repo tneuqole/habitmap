@@ -56,7 +56,7 @@ func Habit(habit model.Habit) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><a href=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div x-data=\"{ open: false }\"><button @click=\"open = !open\" type=\"button\" class=\"w-10 self-start bg-blue-600 text-center text-white font-medium my-2 py-1 rounded-md hover:bg-blue-700 transition\" id=\"menu-button\" aria-expanded=\"true\" aria-haspopup=\"true\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"block m-auto h-6 w-6\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><circle cx=\"6\" cy=\"12\" r=\"2\"></circle> <circle cx=\"12\" cy=\"12\" r=\"2\"></circle> <circle cx=\"18\" cy=\"12\" r=\"2\"></circle></svg></button><div x-show=\"open\" @click.away=\"open = false\" class=\"origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none\" role=\"menu\" aria-orientation=\"vertical\" aria-labelledby=\"menu-button\"><div class=\"py-1\" role=\"none\"><a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -65,7 +65,20 @@ func Habit(habit model.Habit) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"w-10 self-start bg-blue-600 text-center text-white font-medium my-2 py-1 rounded-md hover:bg-blue-700 transition\">Edit</a></div>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900\" role=\"menuitem\">Edit</a><div hx-delete=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(string(templ.URL(fmt.Sprintf("/habits/%d", habit.ID))))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 54, Col: 73}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-confirm=\"Are you sure you want to delete this habit?\" class=\"block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900\" role=\"menuitem\">Delete</div></div></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

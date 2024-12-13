@@ -31,6 +31,7 @@ func main() {
 	habitHandler := handlers.NewHabitHandler(queries)
 	e.GET("/habits", habitHandler.GetHabits)
 	e.GET("/habits/:id", habitHandler.GetHabit)
+	e.DELETE("/habits/:id", habitHandler.DeleteHabit)
 	e.GET("/habits/new", habitHandler.GetCreateHabitForm)
 	e.POST("/habits/new", habitHandler.PostHabit)
 	e.GET("/habits/:id/edit", habitHandler.GetUpdateHabitForm)

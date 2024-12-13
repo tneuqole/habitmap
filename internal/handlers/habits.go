@@ -51,6 +51,22 @@ func (h *HabitHandler) GetHabit(c echo.Context) error {
 	return Render(c, pages.Habit(habit))
 }
 
+func (h *HabitHandler) DeleteHabit(c echo.Context) error {
+	params := GetHabitParams{}
+	if err := c.Bind(&params); err != nil {
+		return err
+	}
+
+	err := h.queries.DeleteHabit(c.Request().Context(), params.HabitID)
+	if err != nil {
+		return err
+	}
+
+	c.Response().Header().Add("Hx-Redirect", "/habits")
+
+	return nil
+}
+
 func (h *HabitHandler) GetCreateHabitForm(c echo.Context) error {
 	return Render(c, forms.CreateHabit(templates.HabitFormData{}))
 }
