@@ -1,0 +1,16 @@
+package components
+
+import (
+	"github.com/tneuqole/habitmap/internal/model"
+	"github.com/tneuqole/habitmap/internal/templates"
+	"fmt"
+)
+
+templ Habit(habit model.Habit) {
+	<div class="my-2">
+		<h1 class={ templates.H1CSS }>
+			<a href={ templ.URL(fmt.Sprintf("/habits/%d", habit.ID)) }>{ habit.Name }</a>
+		</h1>
+		<div class="py-2">TODO</div>
+	</div>
+}

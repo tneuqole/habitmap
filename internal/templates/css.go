@@ -1,3 +1,3 @@
 package templates
 
-var h1CSS = "text-3xl font-semibold text-gray-800"
+var H1CSS = "text-3xl font-semibold text-gray-800"
