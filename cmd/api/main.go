@@ -37,14 +37,14 @@ func main() {
 
 	e.Static("/public", "public")
 
-	habitHandler := handlers.NewHabitHandler(queries, validate)
-	e.GET("/habits", habitHandler.GetHabits)
-	e.GET("/habits/:id", habitHandler.GetHabit)
-	e.DELETE("/habits/:id", habitHandler.DeleteHabit)
-	e.GET("/habits/new", habitHandler.GetCreateHabitForm)
-	e.POST("/habits/new", habitHandler.PostHabit)
-	e.GET("/habits/:id/edit", habitHandler.GetUpdateHabitForm)
-	e.POST("/habits/:id/edit", habitHandler.PostUpdateHabit)
+	habitsHandler := handlers.NewHabitsHandler(queries, validate)
+	e.GET("/habits", habitsHandler.GetHabits)
+	e.GET("/habits/:id", habitsHandler.GetHabit)
+	e.DELETE("/habits/:id", habitsHandler.DeleteHabit)
+	e.GET("/habits/new", habitsHandler.GetCreateHabitForm)
+	e.POST("/habits/new", habitsHandler.PostHabit)
+	e.GET("/habits/:id/edit", habitsHandler.GetUpdateHabitForm)
+	e.POST("/habits/:id/edit", habitsHandler.PostUpdateHabit)
 
 	e.Logger.Fatal(e.Start(":4000"))
 }

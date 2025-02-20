@@ -12,19 +12,19 @@ import (
 	"github.com/tneuqole/habitmap/internal/templates/pages"
 )
 
-type HabitHandler struct {
+type HabitsHandler struct {
 	queries  *model.Queries
 	validate *validator.Validate
 }
 
-func NewHabitHandler(queries *model.Queries, validate *validator.Validate) *HabitHandler {
-	return &HabitHandler{
+func NewHabitsHandler(queries *model.Queries, validate *validator.Validate) *HabitsHandler {
+	return &HabitsHandler{
 		queries:  queries,
 		validate: validate,
 	}
 }
 
-func (h *HabitHandler) GetHabits(c echo.Context) error {
+func (h *HabitsHandler) GetHabits(c echo.Context) error {
 	habits, err := h.queries.GetHabits(c.Request().Context())
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ type GetHabitParams struct {
 	HabitID int64 `param:"id"`
 }
 
-func (h *HabitHandler) GetHabit(c echo.Context) error {
+func (h *HabitsHandler) GetHabit(c echo.Context) error {
 	params := GetHabitParams{}
 	if err := c.Bind(&params); err != nil {
 		return err
@@ -51,7 +51,7 @@ func (h *HabitHandler) GetHabit(c echo.Context) error {
 	return Render(c, pages.Habit(habit))
 }
 
-func (h *HabitHandler) DeleteHabit(c echo.Context) error {
+func (h *HabitsHandler) DeleteHabit(c echo.Context) error {
 	params := GetHabitParams{}
 	if err := c.Bind(&params); err != nil {
 		return err
@@ -67,7 +67,7 @@ func (h *HabitHandler) DeleteHabit(c echo.Context) error {
 	return nil
 }
 
-func (h *HabitHandler) GetCreateHabitForm(c echo.Context) error {
+func (h *HabitsHandler) GetCreateHabitForm(c echo.Context) error {
 	return Render(c, forms.CreateHabit(templates.HabitFormData{}))
 }
 
@@ -75,7 +75,7 @@ type CreateHabitForm struct {
 	Name string `form:"name" validate:"required,notblank,min=1,max=32"`
 }
 
-func (h *HabitHandler) PostHabit(c echo.Context) error {
+func (h *HabitsHandler) PostHabit(c echo.Context) error {
 	form := CreateHabitForm{}
 	if err := c.Bind(&form); err != nil {
 		return err
@@ -99,7 +99,7 @@ func (h *HabitHandler) PostHabit(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/habits/%d", habit.ID))
 }
 
-func (h *HabitHandler) GetUpdateHabitForm(c echo.Context) error {
+func (h *HabitsHandler) GetUpdateHabitForm(c echo.Context) error {
 	params := GetHabitParams{}
 	if err := c.Bind(&params); err != nil {
 		return err
@@ -112,7 +112,7 @@ type UpdateHabitForm struct {
 	CreateHabitForm
 }
 
-func (h *HabitHandler) PostUpdateHabit(c echo.Context) error {
+func (h *HabitsHandler) PostUpdateHabit(c echo.Context) error {
 	form := UpdateHabitForm{}
 	if err := c.Bind(&form); err != nil {
 		return err
