@@ -37,5 +37,8 @@ func main() {
 	e.GET("/habits/:id/edit", habitHandler.GetUpdateHabitForm)
 	e.POST("/habits/:id/edit", habitHandler.PostUpdateHabit)
 
+	entryHandler := handlers.NewEntryHandler(queries)
+	e.POST("/entries", entryHandler.PostEntry)
+
 	e.Logger.Fatal(e.Start(":4000"))
 }

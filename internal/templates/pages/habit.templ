@@ -7,11 +7,11 @@ import (
 	"fmt"
 )
 
-templ Habit(habit model.Habit) {
+templ Habit(habit model.Habit, months []string, entries map[string][]model.Entry) {
 	@layouts.Base("Habit") {
 		<div class="flex flex-row justify-between">
 			<div class="">
-				@components.Habit(habit)
+				@components.Habit(habit, months, entries)
 			</div>
 			<div x-data="{ open: false }">
 				<button

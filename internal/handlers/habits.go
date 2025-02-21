@@ -3,6 +3,8 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"sort"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/tneuqole/habitmap/internal/model"
@@ -10,8 +12,6 @@ import (
 	"github.com/tneuqole/habitmap/internal/templates/forms"
 	"github.com/tneuqole/habitmap/internal/templates/pages"
 )
-
-var validate = NewValidate()
 
 type HabitHandler struct {
 	queries *model.Queries
@@ -48,7 +48,28 @@ func (h *HabitHandler) GetHabit(c echo.Context) error {
 		return err
 	}
 
-	return Render(c, pages.Habit(habit))
+	entries, err := h.queries.GetEntriesForHabit(c.Request().Context(), habit.ID)
+	if err != nil {
+		return err
+	}
+
+	months := make(map[string][]model.Entry)
+	for _, entry := range entries {
+		t := time.Unix(entry.EntryDate, 0)
+		key := t.Format("2006-01")
+		months[key] = append(months[key], entry)
+	}
+
+	var keys []string
+	for key := range months {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	c.Logger().Info(keys)
+	c.Logger().Info(months)
+
+	return Render(c, pages.Habit(habit, keys, months))
 }
 
 func (h *HabitHandler) DeleteHabit(c echo.Context) error {
@@ -108,7 +129,7 @@ func (h *HabitHandler) GetUpdateHabitForm(c echo.Context) error {
 }
 
 type UpdateHabitForm struct {
-	ID int64 `param:"id"`
+	HabitID int64 `param:"id"`
 	CreateHabitForm
 }
 
@@ -130,7 +151,7 @@ func (h *HabitHandler) PostUpdateHabit(c echo.Context) error {
 
 	habit, err := h.queries.UpdateHabit(c.Request().Context(), model.UpdateHabitParams{
 		Name: form.Name,
-		ID:   form.ID,
+		ID:   form.HabitID,
 	})
 	if err != nil {
 		return err
