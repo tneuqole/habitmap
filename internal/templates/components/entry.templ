@@ -9,16 +9,9 @@ import (
 var tdCSS = "border-slate-400 border border-solid rounded-md p-5 aspect-square"
 
 templ Entry(entry model.Entry) {
-	if entry.ID != -1 && entry.EntryDate != -1 {
-		<td
-			class={ tdCSS + " bg-red-400 hover:bg-red-200" }
-			title={ strconv.Itoa(time.Unix(entry.EntryDate, 0).Day()) }
-			entry-id={ strconv.Itoa(int(entry.ID)) }
-			hx-delete={ "/entry/" + strconv.Itoa(int(entry.ID)) }
-			hx-trigger="click"
-			hx-swap="outerHTML"
-		></td>
-	} else if entry.EntryDate != -1 {
+	if entry.ID == 0 && entry.EntryDate == 0 {
+		<td class="aspect-square"></td>
+	} else if entry.ID == 0 && entry.EntryDate > 0 {
 		<td
 			class={ tdCSS + " bg-slate-100 hover:bg-red-200" }
 			title={ strconv.Itoa(time.Unix(entry.EntryDate, 0).Day()) }
@@ -27,6 +20,13 @@ templ Entry(entry model.Entry) {
 			hx-swap="outerHTML"
 		></td>
 	} else {
-		<td class="aspect-square"></td>
+		<td
+			class={ tdCSS + " bg-red-400 hover:bg-red-200" }
+			title={ strconv.Itoa(time.Unix(entry.EntryDate, 0).Day()) }
+			entry-date={ strconv.Itoa(time.Unix(entry.EntryDate, 0).Day()) }
+			hx-delete={ "/entry/" + strconv.Itoa(int(entry.ID)) }
+			hx-trigger="click"
+			hx-swap="outerHTML"
+		></td>
 	}
 }

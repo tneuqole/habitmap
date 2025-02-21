@@ -66,9 +66,6 @@ func (h *HabitHandler) GetHabit(c echo.Context) error {
 	}
 	sort.Strings(keys)
 
-	c.Logger().Info(keys)
-	c.Logger().Info(months)
-
 	return Render(c, pages.Habit(habit, keys, months))
 }
 
