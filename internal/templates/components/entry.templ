@@ -3,18 +3,17 @@ package components
 import (
 	"github.com/tneuqole/habitmap/internal/model"
 	"strconv"
-	"time"
 )
 
 var tdCSS = "border-slate-400 border border-solid rounded-md p-5 aspect-square"
 
 templ Entry(entry model.Entry) {
-	if entry.ID == 0 && entry.EntryDate == 0 {
+	if entry.ID == 0 && entry.EntryDate == "" {
 		<td class="aspect-square"></td>
-	} else if entry.ID == 0 && entry.EntryDate > 0 {
+	} else if entry.ID == 0 && entry.EntryDate != "" {
 		<td
 			class={ tdCSS + " bg-slate-100 hover:bg-red-200" }
-			title={ strconv.Itoa(time.Unix(entry.EntryDate, 0).Day()) }
+			title={ entry.EntryDate[8:] }
 			hx-post="/entry"
 			hx-trigger="click"
 			hx-swap="outerHTML"
@@ -22,8 +21,7 @@ templ Entry(entry model.Entry) {
 	} else {
 		<td
 			class={ tdCSS + " bg-red-400 hover:bg-red-200" }
-			title={ strconv.Itoa(time.Unix(entry.EntryDate, 0).Day()) }
-			entry-date={ strconv.Itoa(time.Unix(entry.EntryDate, 0).Day()) }
+			title={ entry.EntryDate[8:] }
 			hx-delete={ "/entry/" + strconv.Itoa(int(entry.ID)) }
 			hx-trigger="click"
 			hx-swap="outerHTML"

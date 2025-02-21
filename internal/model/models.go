@@ -6,7 +6,7 @@ package model
 
 type Entry struct {
 	ID        int64
-	EntryDate int64
+	EntryDate string
 	HabitID   int64
 }
 

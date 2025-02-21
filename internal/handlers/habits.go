@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/tneuqole/habitmap/internal/model"
@@ -55,8 +54,7 @@ func (h *HabitHandler) GetHabit(c echo.Context) error {
 
 	months := make(map[string][]model.Entry)
 	for _, entry := range entries {
-		t := time.Unix(entry.EntryDate, 0)
-		key := t.Format("2006-01")
+		key := entry.EntryDate[:7] // YYYY-MM
 		months[key] = append(months[key], entry)
 	}
 

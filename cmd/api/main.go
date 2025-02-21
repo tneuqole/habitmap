@@ -40,6 +40,7 @@ func main() {
 
 	entryHandler := handlers.NewEntryHandler(queries)
 	e.POST("/entries", entryHandler.PostEntry)
+	e.DELETE("/entries/:id", entryHandler.DeleteEntry)
 
 	e.Logger.Fatal(e.Start(":4000"))
 }

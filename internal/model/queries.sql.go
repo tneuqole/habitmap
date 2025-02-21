@@ -14,7 +14,7 @@ INSERT INTO entries (entry_date, habit_id) VALUES (?, ?) RETURNING id, entry_dat
 `
 
 type CreateEntryParams struct {
-	EntryDate int64
+	EntryDate string
 	HabitID   int64
 }
 

@@ -18,17 +18,17 @@ func NewEntryHandler(queries *model.Queries) *EntryHandler {
 	}
 }
 
-type DeleteEntryForm struct {
-	EntryID int64 `form:"id"`
+type DeleteEntryParams struct {
+	EntryID int64 `param:"id"`
 }
 
 func (h *EntryHandler) DeleteEntry(c echo.Context) error {
-	form := DeleteEntryForm{}
-	if err := c.Bind(&form); err != nil {
+	params := DeleteEntryParams{}
+	if err := c.Bind(&params); err != nil {
 		return err
 	}
 
-	err := h.queries.DeleteEntry(c.Request().Context(), form.EntryID)
+	err := h.queries.DeleteEntry(c.Request().Context(), params.EntryID)
 	if err != nil {
 		return err
 	}
@@ -39,8 +39,8 @@ func (h *EntryHandler) DeleteEntry(c echo.Context) error {
 }
 
 type CreateEntryForm struct {
-	HabitID   int64 `form:"habit_id" validate:"required,notblank`
-	EntryDate int64 `form:"entry_date" validate:"required,notblank`
+	HabitID   int64  `form:"habit_id" validate:"required,notblank`
+	EntryDate string `form:"entry_date" validate:"required,notblank`
 }
 
 func (h *EntryHandler) PostEntry(c echo.Context) error {

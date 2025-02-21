@@ -18,7 +18,6 @@ func GenerateMonth(monthStr string, entries []model.Entry) [][]model.Entry {
 		return month
 	}
 
-	fmt.Println(date)
 	daysInMonth := date.AddDate(0, 1, -1).Day()
 
 	habitID := entries[0].HabitID
@@ -27,13 +26,13 @@ func GenerateMonth(monthStr string, entries []model.Entry) [][]model.Entry {
 	for day := date.Day(); day <= daysInMonth; {
 		for ; dayOfWeek < 7 && day <= daysInMonth; dayOfWeek++ {
 			fmt.Println(day, date, date.Unix())
-			if entryIdx < len(entries) && time.Unix(entries[entryIdx].EntryDate, 0).Day() == date.Day() {
+			if entryIdx < len(entries) && entries[entryIdx].EntryDate == date.Format("2006-01-02") {
 				week[dayOfWeek] = entries[entryIdx]
 				entryIdx++
 			} else {
 				entry := model.Entry{
 					HabitID:   habitID,
-					EntryDate: date.Unix(),
+					EntryDate: date.Format("2006-01-02"),
 				}
 				week[dayOfWeek] = entry
 			}
