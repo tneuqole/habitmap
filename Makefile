@@ -20,6 +20,7 @@ sql:
 .PHONY: sql/init
 sql/init:
 	sqlite3 habitmap.db < sqlite/schema.sql
+	sqlite3 habitmap.db < sqlite/seed.sql
 
 .PHONY: sql/gen
 sql/gen:

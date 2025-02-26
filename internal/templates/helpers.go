@@ -44,5 +44,12 @@ func GenerateMonth(monthStr string, entries []model.Entry) [][]model.Entry {
 		dayOfWeek = 0
 	}
 
+	fmt.Println(len(month))
+	for len(month) < 6 {
+		week = make([]model.Entry, 7)
+		month = append(month, week)
+	}
+	fmt.Println(len(month))
+
 	return month
 }

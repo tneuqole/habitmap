@@ -37,7 +37,7 @@ func Entry(entry model.Entry) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if entry.ID == 0 && entry.EntryDate == "" {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<td class=\"aspect-square\"></td>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<td class=\"aspect-square p-5\"></td>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

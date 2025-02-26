@@ -9,7 +9,7 @@ var tdCSS = "border-slate-400 border border-solid rounded-md p-5 aspect-square"
 
 templ Entry(entry model.Entry) {
 	if entry.ID == 0 && entry.EntryDate == "" {
-		<td class="aspect-square"></td>
+		<td class="aspect-square p-5"></td>
 	} else if entry.ID == 0 && entry.EntryDate != "" {
 		<td
 			class={ tdCSS + " bg-slate-100 hover:bg-red-200" }

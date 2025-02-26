@@ -11,7 +11,7 @@ templ Habit(habit model.Habit, months []string, entries map[string][]model.Entry
 		<h1 class={ templates.H1CSS }>
 			<a href={ templ.URL(fmt.Sprintf("/habits/%d", habit.ID)) }>{ habit.Name }</a>
 		</h1>
-		<div class="py-2">
+		<div class="flex flex-row flex-wrap py-2">
 			for _, month := range months {
 				@Month(month, entries[month])
 			}
