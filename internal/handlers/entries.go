@@ -8,43 +8,26 @@ import (
 	"github.com/tneuqole/habitmap/internal/model"
 )
 
+// EntryHandler handles HTTP requests related to entries
 type EntryHandler struct {
-	queries *model.Queries
+	*BaseHandler
 }
 
-func NewEntryHandler(queries *model.Queries) *EntryHandler {
+// NewEntryHandler creates a new EntryHandler
+func NewEntryHandler(bh *BaseHandler) *EntryHandler {
 	return &EntryHandler{
-		queries: queries,
+		BaseHandler: bh,
 	}
 }
 
-type DeleteEntryParams struct {
-	EntryID int64 `param:"id"`
+type createEntryForm struct {
+	HabitID   int64  `form:"habit_id" validate:"required,notblank"`
+	EntryDate string `form:"entry_date" validate:"required,notblank"`
 }
 
-func (h *EntryHandler) DeleteEntry(c echo.Context) error {
-	params := DeleteEntryParams{}
-	if err := c.Bind(&params); err != nil {
-		return err
-	}
-
-	err := h.queries.DeleteEntry(c.Request().Context(), params.EntryID)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Add("Hx-Redirect", "/habits") // TODO
-
-	return nil
-}
-
-type CreateEntryForm struct {
-	HabitID   int64  `form:"habit_id" validate:"required,notblank`
-	EntryDate string `form:"entry_date" validate:"required,notblank`
-}
-
+// PostEntry processes a form for creating a new entry
 func (h *EntryHandler) PostEntry(c echo.Context) error {
-	form := CreateEntryForm{}
+	form := createEntryForm{}
 	if err := c.Bind(&form); err != nil {
 		return err
 	}
@@ -55,10 +38,31 @@ func (h *EntryHandler) PostEntry(c echo.Context) error {
 	}
 
 	params := model.CreateEntryParams{EntryDate: form.EntryDate, HabitID: form.HabitID}
-	entry, err := h.queries.CreateEntry(c.Request().Context(), params)
+	entry, err := h.Queries.CreateEntry(c.Request().Context(), params)
 	if err != nil {
 		return err
 	}
 
 	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/habits/%d", entry.HabitID))
+}
+
+type deleteEntryParams struct {
+	EntryID int64 `param:"id"`
+}
+
+// DeleteEntry deletes an entry by id
+func (h *EntryHandler) DeleteEntry(c echo.Context) error {
+	params := deleteEntryParams{}
+	if err := c.Bind(&params); err != nil {
+		return err
+	}
+
+	err := h.Queries.DeleteEntry(c.Request().Context(), params.EntryID)
+	if err != nil {
+		return err
+	}
+
+	c.Response().Header().Add("Hx-Redirect", "/habits") // TODO
+
+	return nil
 }

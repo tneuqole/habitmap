@@ -1,32 +1,44 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
 	"github.com/labstack/echo/v4"
+	"github.com/tneuqole/habitmap/internal/model"
 )
 
-func Render(c echo.Context, component templ.Component) error {
+const daysInWeek = 7
+
+// BaseHandler is a common type that other Handlers embed
+type BaseHandler struct {
+	Logger  *slog.Logger
+	Queries *model.Queries
+}
+
+func (h *BaseHandler) render(c echo.Context, component templ.Component) error {
 	return component.Render(c.Request().Context(), c.Response())
 }
 
-func NewValidate() *validator.Validate {
+func newValidate() *validator.Validate {
 	validate := validator.New()
-	validate.RegisterValidation("notblank", validators.NotBlank)
+	validate.RegisterValidation("notblank", validators.NotBlank) //nolint:errcheck,gosec
 	return validate
 }
 
-var validate = NewValidate()
+var validate = newValidate()
 
-func ParseValidationErrors(err error) map[string]string {
-	errors := make(map[string]string)
+func parseValidationErrors(err error) map[string]string {
+	errMsgs := make(map[string]string)
 
-	if _, ok := err.(validator.ValidationErrors); ok {
-		for _, fieldErr := range err.(validator.ValidationErrors) {
+	var validationErrors validator.ValidationErrors
+	if errors.As(err, &validationErrors) {
+		for _, fieldErr := range validationErrors {
 			var msg string
 			switch fieldErr.Tag() {
 			case "required":
@@ -46,16 +58,65 @@ func ParseValidationErrors(err error) map[string]string {
 			default:
 				msg = fmt.Sprintf("%s is invalid", fieldErr.Field())
 			}
-			errors[fieldErr.Field()] = msg
+			errMsgs[fieldErr.Field()] = msg
 		}
 	}
 
-	return errors
+	return errMsgs
 }
 
-func monthsBetween(startTime, endTime time.Time) int {
-	yearsDiff := endTime.Year() - startTime.Year()
-	monthsDiff := int(endTime.Month()) - int(startTime.Month())
+// generateMonth creates a 2D slice representing a month's calendar,
+// with each week containing habit entries for 7 days. The week is populated based on
+// the entries parameter, if no entry exists for a date then a blank Entry{} is created.
+// The function pads weeks with empty days and months with empty weeks as needed.
+//
+// Parameters:
+//
+//	monthStr (string): The target month in "YYYY-MM" format.
+//	entries ([]model.Entry): Habit entries to populate the calendar.
+//
+// Returns:
+//
+//	[][]model.Entry: A 2D slice with weekly habit entries.
+func (h *BaseHandler) generateMonth(monthStr string, entries []model.Entry) [][]model.Entry {
+	var month [][]model.Entry
+	week := make([]model.Entry, daysInWeek)
 
-	return yearsDiff*12 + monthsDiff
+	date, err := time.Parse("2006-01", monthStr)
+	if err != nil {
+		h.Logger.Error("Error parsing date", slog.Any("error", err))
+		return month
+	}
+
+	daysInMonth := date.AddDate(0, 1, -1).Day()
+
+	habitID := entries[0].HabitID
+	entryIdx := 0
+	dayOfWeek := int(date.Weekday())
+	for day := date.Day(); day <= daysInMonth; {
+		for ; dayOfWeek < daysInWeek && day <= daysInMonth; dayOfWeek++ {
+			if entryIdx < len(entries) && entries[entryIdx].EntryDate == date.Format("2006-01-02") {
+				week[dayOfWeek] = entries[entryIdx]
+				entryIdx++
+			} else {
+				entry := model.Entry{
+					HabitID:   habitID,
+					EntryDate: date.Format("2006-01-02"),
+				}
+				week[dayOfWeek] = entry
+			}
+			date = date.AddDate(0, 0, 1)
+			day++
+		}
+		month = append(month, week)
+		week = make([]model.Entry, daysInWeek)
+		dayOfWeek = 0
+	}
+
+	for len(month) < 6 {
+		week = make([]model.Entry, daysInWeek)
+		month = append(month, week)
+	}
+
+	return month
 }
