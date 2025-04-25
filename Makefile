@@ -1,8 +1,8 @@
-include .env
+# include .env
 
 .PHONY: build
 build:
-	npx @tailwindcss/cli -i ./assets/app.css -o ./public/app.css
+	npx tailwindcss -i ./assets/app.css -o ./public/app.css
 	templ generate
 
 .PHONY: dev
