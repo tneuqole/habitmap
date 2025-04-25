@@ -1,60 +1,85 @@
-// package main sets up initial configuration and starts the web server
 package main
 
 import (
 	"database/sql"
 	"log/slog"
+	"net/http"
 	"os"
+	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/labstack/gommon/log"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/tneuqole/habitmap/internal/handlers"
 	"github.com/tneuqole/habitmap/internal/model"
 )
 
-func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+const (
+	readTimeout  = 10
+	writeTimeout = 10
+	idleTimeout  = 120
+)
 
-	db, err := sql.Open("sqlite3", "./habitmap.db") // TODO: probably shouldn't expose filename
+func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	db, err := sql.Open("sqlite3", "./habitmap.db")
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed to connect to database", slog.Any("error", err))
+		os.Exit(1)
 	}
+
 	defer func() {
 		if err := db.Close(); err != nil {
-			log.Fatalf("Error closing database connection: %v", err)
+			logger.Error("error closing database connection", slog.Any("error", err))
+			os.Exit(1)
 		}
 	}()
 
 	queries := model.New(db)
 
-	e := echo.New()
-	e.Logger.SetLevel(log.DEBUG) // TODO: make env var
-	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
-
-	e.GET("/health", handlers.GetHealth)
-
-	e.Static("/public", "public")
-
-	baseHandler := &handlers.BaseHandler{
+	h := &handlers.BaseHandler{
 		Logger:  logger,
 		Queries: queries,
 	}
 
-	habitHandler := handlers.NewHabitHandler(baseHandler)
-	e.GET("/habits", habitHandler.GetHabits)
-	e.GET("/habits/:id", habitHandler.GetHabit)
-	e.DELETE("/habits/:id", habitHandler.DeleteHabit)
-	e.GET("/habits/new", habitHandler.GetCreateHabitForm)
-	e.POST("/habits/new", habitHandler.PostHabit)
-	e.GET("/habits/:id/edit", habitHandler.GetUpdateHabitForm)
-	e.POST("/habits/:id/edit", habitHandler.PostUpdateHabit)
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
-	entryHandler := handlers.NewEntryHandler(baseHandler)
-	e.POST("/entries", entryHandler.PostEntry)
-	e.DELETE("/entries/:id", entryHandler.DeleteEntry)
+	r.Get("/health", h.Wrap(handlers.GetHealth))
 
-	e.Logger.Fatal(e.Start(":4000"))
+	r.Handle("/public/*", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
+
+	// TODO: implement home page
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/habits", http.StatusFound)
+	})
+
+	habitHandler := handlers.NewHabitHandler(h)
+	r.Get("/habits", h.Wrap(habitHandler.GetHabits))
+	r.Get("/habits/{id}", h.Wrap(habitHandler.GetHabit))
+	r.Delete("/habits/{id}", h.Wrap(habitHandler.DeleteHabit))
+	r.Get("/habits/new", h.Wrap(habitHandler.GetCreateHabitForm))
+	r.Post("/habits/new", h.Wrap(habitHandler.PostHabit))
+	r.Get("/habits/{id}/edit", h.Wrap(habitHandler.GetUpdateHabitForm))
+	r.Post("/habits/{id}/edit", h.Wrap(habitHandler.PostUpdateHabit))
+
+	entryHandler := handlers.NewEntryHandler(h)
+	r.Post("/entries", h.Wrap(entryHandler.PostEntry))
+	r.Delete("/entries/{id}", h.Wrap(entryHandler.DeleteEntry))
+
+	logger.Info("Running on http://localhost:4000")
+	srv := &http.Server{
+		Addr:         ":4000",
+		Handler:      r,
+		ReadTimeout:  readTimeout * time.Second,
+		WriteTimeout: writeTimeout * time.Second,
+		IdleTimeout:  idleTimeout * time.Second,
+	}
+
+	err = srv.ListenAndServe()
+	if err != nil {
+		logger.Error("Error starting http server", slog.Any("error", err))
+	}
 }

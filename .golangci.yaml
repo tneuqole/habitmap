@@ -154,6 +154,12 @@ linters:
         - shadow
     nolintlint:
       require-specific: true
+    revive:
+      rules:
+        - name: package-comments
+          disabled: true
+        - name: exported
+          disabled: true
     sloglint:
       no-global: default
       attr-only: true

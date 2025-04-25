@@ -4,25 +4,68 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/form/v4"
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
-	"github.com/labstack/echo/v4"
 	"github.com/tneuqole/habitmap/internal/model"
 )
 
 const daysInWeek = 7
 
-// BaseHandler is a common type that other Handlers embed
+type AppError struct {
+	StatusCode int
+	Msg        string
+}
+
+func NewAppError(code int, msg string) *AppError {
+	return &AppError{
+		StatusCode: code,
+		Msg:        msg,
+	}
+}
+
+func (e AppError) Error() string {
+	return fmt.Sprintf("%d: %s", e.StatusCode, e.Msg)
+}
+
 type BaseHandler struct {
 	Logger  *slog.Logger
 	Queries *model.Queries
 }
 
-func (h *BaseHandler) render(c echo.Context, component templ.Component) error {
-	return component.Render(c.Request().Context(), c.Response())
+func (h *BaseHandler) render(w http.ResponseWriter, r *http.Request, component templ.Component) error {
+	return component.Render(r.Context(), w)
+}
+
+func (h *BaseHandler) getIDFromURL(r *http.Request) (int64, error) {
+	param := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(param, 10, 64)
+	if err != nil {
+		return -1, NewAppError(http.StatusBadRequest, "id must be an integer")
+	}
+
+	return id, nil
+}
+
+var formDecoder = form.NewDecoder()
+
+// dest should be address of a struct
+func (h *BaseHandler) bindFormData(r *http.Request, dest any) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+
+	if err := formDecoder.Decode(dest, r.Form); err != nil {
+		return NewAppError(http.StatusBadRequest, err.Error())
+	}
+
+	return nil
 }
 
 func newValidate() *validator.Validate {

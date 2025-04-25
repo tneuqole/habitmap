@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
 	"github.com/tneuqole/habitmap/internal/model"
 )
 
-// EntryHandler handles HTTP requests related to entries
 type EntryHandler struct {
 	*BaseHandler
 }
 
-// NewEntryHandler creates a new EntryHandler
 func NewEntryHandler(bh *BaseHandler) *EntryHandler {
 	return &EntryHandler{
 		BaseHandler: bh,
@@ -25,10 +22,9 @@ type createEntryForm struct {
 	EntryDate string `form:"entry_date" validate:"required,notblank"`
 }
 
-// PostEntry processes a form for creating a new entry
-func (h *EntryHandler) PostEntry(c echo.Context) error {
-	form := createEntryForm{}
-	if err := c.Bind(&form); err != nil {
+func (h *EntryHandler) PostEntry(w http.ResponseWriter, r *http.Request) error {
+	var form createEntryForm
+	if err := h.bindFormData(r, &form); err != nil {
 		return err
 	}
 
@@ -38,31 +34,28 @@ func (h *EntryHandler) PostEntry(c echo.Context) error {
 	}
 
 	params := model.CreateEntryParams{EntryDate: form.EntryDate, HabitID: form.HabitID}
-	entry, err := h.Queries.CreateEntry(c.Request().Context(), params)
+	entry, err := h.Queries.CreateEntry(r.Context(), params)
 	if err != nil {
 		return err
 	}
 
-	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/habits/%d", entry.HabitID))
+	http.Redirect(w, r, fmt.Sprintf("/habits/%d", entry.HabitID), http.StatusSeeOther)
+	return nil
 }
 
-type deleteEntryParams struct {
-	EntryID int64 `param:"id"`
-}
-
-// DeleteEntry deletes an entry by id
-func (h *EntryHandler) DeleteEntry(c echo.Context) error {
-	params := deleteEntryParams{}
-	if err := c.Bind(&params); err != nil {
-		return err
-	}
-
-	err := h.Queries.DeleteEntry(c.Request().Context(), params.EntryID)
+func (h *EntryHandler) DeleteEntry(w http.ResponseWriter, r *http.Request) error {
+	entryID, err := h.getIDFromURL(r)
 	if err != nil {
 		return err
 	}
 
-	c.Response().Header().Add("Hx-Redirect", "/habits") // TODO
+	err = h.Queries.DeleteEntry(r.Context(), entryID)
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("HX-Redirect", "/habits") // TODO
+	w.WriteHeader(http.StatusNoContent)
 
 	return nil
 }
