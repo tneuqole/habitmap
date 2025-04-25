@@ -2,10 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/gommon/log"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/tneuqole/habitmap/internal/handlers"
 	"github.com/tneuqole/habitmap/internal/model"
@@ -21,6 +21,7 @@ func main() {
 	queries := model.New(db)
 
 	e := echo.New()
+	e.Logger.SetLevel(log.DEBUG) // TODO: make env var
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
 
@@ -36,6 +37,10 @@ func main() {
 	e.POST("/habits/new", habitHandler.PostHabit)
 	e.GET("/habits/:id/edit", habitHandler.GetUpdateHabitForm)
 	e.POST("/habits/:id/edit", habitHandler.PostUpdateHabit)
+
+	entryHandler := handlers.NewEntryHandler(queries)
+	e.POST("/entries", entryHandler.PostEntry)
+	e.DELETE("/entries/:id", entryHandler.DeleteEntry)
 
 	e.Logger.Fatal(e.Start(":4000"))
 }

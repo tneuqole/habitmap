@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/go-playground/validator/v10"
@@ -18,6 +19,8 @@ func NewValidate() *validator.Validate {
 	validate.RegisterValidation("notblank", validators.NotBlank)
 	return validate
 }
+
+var validate = NewValidate()
 
 func ParseValidationErrors(err error) map[string]string {
 	errors := make(map[string]string)
@@ -48,4 +51,11 @@ func ParseValidationErrors(err error) map[string]string {
 	}
 
 	return errors
+}
+
+func monthsBetween(startTime, endTime time.Time) int {
+	yearsDiff := endTime.Year() - startTime.Year()
+	monthsDiff := int(endTime.Month()) - int(startTime.Month())
+
+	return yearsDiff*12 + monthsDiff
 }
