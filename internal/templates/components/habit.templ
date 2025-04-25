@@ -2,14 +2,14 @@ package components
 
 import "github.com/tneuqole/habitmap/internal/model"
 
-templ Habit(habit model.Habit, months []string, entries map[string][]model.Entry) {
+templ Habit(habit model.Habit, months []string, entriesForMonths map[string][][]model.Entry) {
 	<div class="my-2">
 		<!-- <h1 class={ templates.H1CSS }> -->
 		<!-- 	<a href={ templ.URL(fmt.Sprintf("/habits/%d", habit.ID)) }>{ habit.Name }</a> -->
 		<!-- </h1> -->
 		<div class="flex flex-row flex-wrap justify-center py-2">
 			for _, month := range months {
-				@Month(month, entries[month])
+				@Month(month, entriesForMonths[month])
 			}
 		</div>
 	</div>

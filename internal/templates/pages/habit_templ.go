@@ -18,7 +18,7 @@ import (
 
 var btnCSS = "w-7 h-7 mx-2 rounded-md bg-blue-600 text-center text-white hover:bg-blue-700 transition"
 
-func Habit(habit model.Habit, months []string, entries map[string][]model.Entry) templ.Component {
+func Habit(habit model.Habit, months []string, entriesForMonths map[string][][]model.Entry) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -165,7 +165,7 @@ func Habit(habit model.Habit, months []string, entries map[string][]model.Entry)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.Habit(habit, months, entries).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Habit(habit, months, entriesForMonths).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -10,7 +10,7 @@ import (
 
 var btnCSS = "w-7 h-7 mx-2 rounded-md bg-blue-600 text-center text-white hover:bg-blue-700 transition"
 
-templ Habit(habit model.Habit, months []string, entries map[string][]model.Entry) {
+templ Habit(habit model.Habit, months []string, entriesForMonths map[string][][]model.Entry) {
 	@layouts.Base("Habit") {
 		<div class="flex flex-col">
 			<div class="grid grid-cols-3">
@@ -77,7 +77,7 @@ templ Habit(habit model.Habit, months []string, entries map[string][]model.Entry
 					</div>
 				</div>
 			</div>
-			@components.Habit(habit, months, entries)
+			@components.Habit(habit, months, entriesForMonths)
 		</div>
 	}
 }
