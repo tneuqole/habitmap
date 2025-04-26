@@ -41,7 +41,10 @@ func (h *HabitHandler) GetHabit(w http.ResponseWriter, r *http.Request) error {
 		return h.handleDBError(err)
 	}
 
-	entries, err := h.Queries.GetEntriesForHabit(r.Context(), habit.ID)
+	entries, err := h.Queries.GetEntriesForHabitByYear(r.Context(), model.GetEntriesForHabitByYearParams{
+		HabitID:   habitID,
+		EntryDate: "2025",
+	})
 	if err != nil {
 		return h.handleDBError(err)
 	}

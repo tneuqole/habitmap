@@ -42,3 +42,8 @@ sql/init:
 sql/gen:
 	sqlc generate
 
+.PHONY: sql/fmt
+sql/fmt:
+	sqlfluff fix --dialect sqlite sqlite/
+
+
