@@ -77,7 +77,7 @@ templ Habit(habit model.Habit, months []string, entriesForMonths map[string][][]
 					</div>
 				</div>
 			</div>
-			@components.Habit(habit, months, entriesForMonths)
+			@components.Habit(habit, months, entriesForMonths, false)
 		</div>
 	}
 }

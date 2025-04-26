@@ -165,7 +165,7 @@ func Habit(habit model.Habit, months []string, entriesForMonths map[string][][]m
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.Habit(habit, months, entriesForMonths).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Habit(habit, months, entriesForMonths, false).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
