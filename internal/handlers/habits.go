@@ -5,54 +5,45 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/labstack/echo/v4"
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/templates"
 	"github.com/tneuqole/habitmap/internal/templates/forms"
 	"github.com/tneuqole/habitmap/internal/templates/pages"
 )
 
-// HabitHandler handles HTTP requests related to habits
 type HabitHandler struct {
 	*BaseHandler
 }
 
-// NewHabitHandler creates a new HabitHandler
 func NewHabitHandler(bh *BaseHandler) *HabitHandler {
 	return &HabitHandler{
 		BaseHandler: bh,
 	}
 }
 
-// GetHabits returns all habits from the database
-func (h *HabitHandler) GetHabits(c echo.Context) error {
-	habits, err := h.Queries.GetHabits(c.Request().Context())
+func (h *HabitHandler) GetHabits(w http.ResponseWriter, r *http.Request) error {
+	habits, err := h.Queries.GetHabits(r.Context())
 	if err != nil {
-		return err
+		return h.handleDBError(err)
 	}
 
-	return h.render(c, pages.Habits(habits))
+	return h.render(w, r, pages.Habits(habits))
 }
 
-type getHabitParams struct {
-	HabitID int64 `param:"id"`
-}
-
-// GetHabit returns a single habit by id
-func (h *HabitHandler) GetHabit(c echo.Context) error {
-	params := getHabitParams{}
-	if err := c.Bind(&params); err != nil {
-		return err
-	}
-
-	habit, err := h.Queries.GetHabit(c.Request().Context(), params.HabitID)
+func (h *HabitHandler) GetHabit(w http.ResponseWriter, r *http.Request) error {
+	habitID, err := h.getIDFromURL(r)
 	if err != nil {
 		return err
 	}
 
-	entries, err := h.Queries.GetEntriesForHabit(c.Request().Context(), habit.ID)
+	habit, err := h.Queries.GetHabit(r.Context(), habitID)
 	if err != nil {
-		return err
+		return h.handleDBError(err)
+	}
+
+	entries, err := h.Queries.GetEntriesForHabit(r.Context(), habit.ID)
+	if err != nil {
+		return h.handleDBError(err)
 	}
 
 	// group entries by month
@@ -74,39 +65,37 @@ func (h *HabitHandler) GetHabit(c echo.Context) error {
 	for monthStr, entries := range entriesMonthMap {
 		entriesForMonths[monthStr] = h.generateMonth(monthStr, entries)
 	}
-	return h.render(c, pages.Habit(habit, sortedMonths, entriesForMonths))
+	return h.render(w, r, pages.Habit(habit, sortedMonths, entriesForMonths))
 }
 
-// DeleteHabit deletes a single habit by id
-func (h *HabitHandler) DeleteHabit(c echo.Context) error {
-	params := getHabitParams{}
-	if err := c.Bind(&params); err != nil {
-		return err
-	}
-
-	err := h.Queries.DeleteHabit(c.Request().Context(), params.HabitID)
+func (h *HabitHandler) DeleteHabit(w http.ResponseWriter, r *http.Request) error {
+	habitID, err := h.getIDFromURL(r)
 	if err != nil {
 		return err
 	}
 
-	c.Response().Header().Add("Hx-Redirect", "/habits")
+	err = h.Queries.DeleteHabit(r.Context(), habitID)
+	if err != nil {
+		return h.handleDBError(err)
+	}
+
+	w.Header().Set("HX-Redirect", "/habits")
+	w.WriteHeader(http.StatusNoContent)
 
 	return nil
 }
 
-// GetCreateHabitForm renders a form for creating a new habit
-func (h *HabitHandler) GetCreateHabitForm(c echo.Context) error {
-	return h.render(c, forms.CreateHabit(templates.HabitFormData{}))
+func (h *HabitHandler) GetCreateHabitForm(w http.ResponseWriter, r *http.Request) error {
+	return h.render(w, r, forms.CreateHabit(templates.HabitFormData{}))
 }
 
 type createHabitForm struct {
 	Name string `form:"name" validate:"required,notblank,min=1,max=32"`
 }
 
-// PostHabit processes a form for creating a new habit
-func (h *HabitHandler) PostHabit(c echo.Context) error {
-	form := createHabitForm{}
-	if err := c.Bind(&form); err != nil {
+func (h *HabitHandler) PostHabit(w http.ResponseWriter, r *http.Request) error {
+	var form createHabitForm
+	if err := h.bindFormData(r, &form); err != nil {
 		return err
 	}
 
@@ -117,55 +106,55 @@ func (h *HabitHandler) PostHabit(c echo.Context) error {
 			Name:   form.Name,
 			Errors: errors,
 		}
-		return h.render(c, forms.CreateHabit(data))
+		return h.render(w, r, forms.CreateHabit(data))
 	}
 
-	habit, err := h.Queries.CreateHabit(c.Request().Context(), form.Name)
+	habit, err := h.Queries.CreateHabit(r.Context(), form.Name)
+	if err != nil {
+		return h.handleDBError(err)
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/habits/%d", habit.ID), http.StatusSeeOther)
+	return nil
+}
+
+func (h *HabitHandler) GetUpdateHabitForm(w http.ResponseWriter, r *http.Request) error {
+	habitID, err := h.getIDFromURL(r)
+	if err != nil {
+		return err
+	}
+	return h.render(w, r, forms.UpdateHabit(templates.HabitFormData{ID: habitID}))
+}
+
+func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) error {
+	habitID, err := h.getIDFromURL(r)
 	if err != nil {
 		return err
 	}
 
-	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/habits/%d", habit.ID))
-}
-
-// GetUpdateHabitForm renders a form for updating a habit
-func (h *HabitHandler) GetUpdateHabitForm(c echo.Context) error {
-	params := getHabitParams{}
-	if err := c.Bind(&params); err != nil {
-		return err
-	}
-	return h.render(c, forms.UpdateHabit(templates.HabitFormData{ID: params.HabitID}))
-}
-
-type updateHabitForm struct {
-	HabitID int64 `param:"id"`
-	createHabitForm
-}
-
-// PostUpdateHabit processes a form for updating a habit
-func (h *HabitHandler) PostUpdateHabit(c echo.Context) error {
-	form := updateHabitForm{}
-	if err := c.Bind(&form); err != nil {
+	var form createHabitForm
+	if err := h.bindFormData(r, &form); err != nil {
 		return err
 	}
 
-	err := validate.Struct(&form)
+	err = validate.Struct(&form)
 	if err != nil {
 		errors := parseValidationErrors(err)
 		data := templates.HabitFormData{
 			Name:   form.Name,
 			Errors: errors,
 		}
-		return h.render(c, forms.UpdateHabit(data))
+		return h.render(w, r, forms.UpdateHabit(data))
 	}
 
-	habit, err := h.Queries.UpdateHabit(c.Request().Context(), model.UpdateHabitParams{
+	habit, err := h.Queries.UpdateHabit(r.Context(), model.UpdateHabitParams{
 		Name: form.Name,
-		ID:   form.HabitID,
+		ID:   habitID,
 	})
 	if err != nil {
-		return err
+		return h.handleDBError(err)
 	}
 
-	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/habits/%d", habit.ID))
+	http.Redirect(w, r, fmt.Sprintf("/habits/%d", habit.ID), http.StatusSeeOther)
+	return nil
 }
