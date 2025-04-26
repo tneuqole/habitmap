@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
+
+	"github.com/tneuqole/habitmap/internal/util"
 )
 
 type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
@@ -11,7 +12,7 @@ type HandlerFunc func(w http.ResponseWriter, r *http.Request) error
 func (h *BaseHandler) Wrap(f HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {
-			h.Logger.Error("API_ERROR", slog.Any("error", err.Error()))
+			h.Logger.Error("API_ERROR", util.ErrorSlog(err))
 
 			var appErr AppError
 			if errors.As(err, &appErr) {

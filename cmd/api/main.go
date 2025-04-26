@@ -12,6 +12,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/tneuqole/habitmap/internal/handlers"
 	"github.com/tneuqole/habitmap/internal/model"
+	"github.com/tneuqole/habitmap/internal/util"
 )
 
 const (
@@ -21,17 +22,20 @@ const (
 )
 
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	// TODO: make log level env var
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
 
-	db, err := sql.Open("sqlite3", "./habitmap.db")
+	db, err := sql.Open("sqlite3", "./habitmap.db") // TODO: probably shouldn't expose filename
 	if err != nil {
-		logger.Error("failed to connect to database", slog.Any("error", err))
+		logger.Error("failed to connect to database", util.ErrorSlog(err))
 		os.Exit(1)
 	}
 
 	defer func() {
 		if err := db.Close(); err != nil {
-			logger.Error("error closing database connection", slog.Any("error", err))
+			logger.Error("error closing database connection", util.ErrorSlog(err))
 			os.Exit(1)
 		}
 	}()
@@ -80,6 +84,6 @@ func main() {
 
 	err = srv.ListenAndServe()
 	if err != nil {
-		logger.Error("Error starting http server", slog.Any("error", err))
+		logger.Error("Error starting http server", util.ErrorSlog(err))
 	}
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -14,6 +15,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
 	"github.com/tneuqole/habitmap/internal/model"
+	"github.com/tneuqole/habitmap/internal/util"
 )
 
 const daysInWeek = 7
@@ -66,6 +68,15 @@ func (h *BaseHandler) bindFormData(r *http.Request, dest any) error {
 	}
 
 	return nil
+}
+
+func (h *BaseHandler) handleDBError(err error) error {
+	h.Logger.Error("DATABASE_ERROR", util.ErrorSlog(err))
+	if errors.Is(err, sql.ErrNoRows) {
+		return NewAppError(http.StatusNotFound, "Resource does not exist")
+	}
+
+	return NewAppError(http.StatusInternalServerError, "Error reading from database")
 }
 
 func newValidate() *validator.Validate {
@@ -127,7 +138,7 @@ func (h *BaseHandler) generateMonth(monthStr string, entries []model.Entry) [][]
 
 	date, err := time.Parse("2006-01", monthStr)
 	if err != nil {
-		h.Logger.Error("Error parsing date", slog.Any("error", err))
+		h.Logger.Error("Error parsing date", util.ErrorSlog(err))
 		return month
 	}
 

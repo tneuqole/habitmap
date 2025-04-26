@@ -24,7 +24,7 @@ func NewHabitHandler(bh *BaseHandler) *HabitHandler {
 func (h *HabitHandler) GetHabits(w http.ResponseWriter, r *http.Request) error {
 	habits, err := h.Queries.GetHabits(r.Context())
 	if err != nil {
-		return err
+		return h.handleDBError(err)
 	}
 
 	return h.render(w, r, pages.Habits(habits))
@@ -38,12 +38,12 @@ func (h *HabitHandler) GetHabit(w http.ResponseWriter, r *http.Request) error {
 
 	habit, err := h.Queries.GetHabit(r.Context(), habitID)
 	if err != nil {
-		return err
+		return h.handleDBError(err)
 	}
 
 	entries, err := h.Queries.GetEntriesForHabit(r.Context(), habit.ID)
 	if err != nil {
-		return err
+		return h.handleDBError(err)
 	}
 
 	// group entries by month
@@ -76,10 +76,10 @@ func (h *HabitHandler) DeleteHabit(w http.ResponseWriter, r *http.Request) error
 
 	err = h.Queries.DeleteHabit(r.Context(), habitID)
 	if err != nil {
-		return err
+		return h.handleDBError(err)
 	}
 
-	w.Header().Set("Hx-Redirect", "/habits")
+	w.Header().Set("HX-Redirect", "/habits")
 	w.WriteHeader(http.StatusNoContent)
 
 	return nil
@@ -111,7 +111,7 @@ func (h *HabitHandler) PostHabit(w http.ResponseWriter, r *http.Request) error {
 
 	habit, err := h.Queries.CreateHabit(r.Context(), form.Name)
 	if err != nil {
-		return err
+		return h.handleDBError(err)
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/habits/%d", habit.ID), http.StatusSeeOther)
@@ -152,7 +152,7 @@ func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) e
 		ID:   habitID,
 	})
 	if err != nil {
-		return err
+		return h.handleDBError(err)
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/habits/%d", habit.ID), http.StatusSeeOther)
