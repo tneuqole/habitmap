@@ -25,8 +25,8 @@ type AppError struct {
 	Msg        string
 }
 
-func NewAppError(code int, msg string) *AppError {
-	return &AppError{
+func NewAppError(code int, msg string) AppError {
+	return AppError{
 		StatusCode: code,
 		Msg:        msg,
 	}
