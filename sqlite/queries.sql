@@ -19,5 +19,5 @@ INSERT INTO entries (entry_date, habit_id) VALUES (?, ?) RETURNING *;
 -- name: GetEntriesForHabit :many
 SELECT * FROM entries WHERE habit_id = ? ORDER BY entry_date ASC;
 
--- name: DeleteEntry :exec
-DELETE FROM entries WHERE id = ?;
+-- name: DeleteEntry :one
+DELETE FROM entries WHERE id = ? RETURNING *;
