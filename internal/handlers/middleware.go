@@ -16,7 +16,7 @@ func (h *BaseHandler) Wrap(f HandlerFunc) http.HandlerFunc {
 		if err := f(w, r); err != nil {
 			h.Logger.Error("API_ERROR", util.ErrorSlog(err), slog.String("error_type", fmt.Sprintf("%T", err)))
 
-			var appErr AppError
+			var appErr util.AppError
 			if errors.As(err, &appErr) {
 				w.WriteHeader(appErr.StatusCode)
 				// TODO: render error page

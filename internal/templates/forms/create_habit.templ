@@ -6,7 +6,7 @@ import (
 )
 
 templ CreateHabit(data templates.HabitFormData) {
-	@layouts.Base("Create Habit") {
+	@layouts.Base("Create Habit", nil) {
 		<div class="flex flex-col mx-auto items-center w-1/3">
 			<h1 class={ templates.H1CSS }>Create Habit</h1>
 			<form action="/habits/new" method="POST" class="w-full py-2">

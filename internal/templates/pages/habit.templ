@@ -6,12 +6,13 @@ import (
 	"github.com/tneuqole/habitmap/internal/templates"
 	"github.com/tneuqole/habitmap/internal/templates/components"
 	"github.com/tneuqole/habitmap/internal/templates/layouts"
+	"github.com/tneuqole/habitmap/internal/util"
 )
 
 var btnCSS = "w-7 h-7 mx-2 rounded-md bg-blue-600 text-center text-white hover:bg-blue-700 transition"
 
-templ Habit(habit model.Habit, months []string, entriesForMonths map[string][][]model.Entry) {
-	@layouts.Base("Habit") {
+templ Habit(habit model.Habit, months []string, entriesForMonths map[string][][]model.Entry, appErr *util.AppError) {
+	@layouts.Base("Habit", appErr) {
 		<div class="flex flex-col">
 			<div class="grid grid-cols-3">
 				<h1 class={ templates.H1CSS + " flex items-center" }>

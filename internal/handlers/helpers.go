@@ -20,22 +20,6 @@ import (
 
 const daysInWeek = 7
 
-type AppError struct {
-	StatusCode int
-	Msg        string
-}
-
-func NewAppError(code int, msg string) AppError {
-	return AppError{
-		StatusCode: code,
-		Msg:        msg,
-	}
-}
-
-func (e AppError) Error() string {
-	return fmt.Sprintf("%d: %s", e.StatusCode, e.Msg)
-}
-
 type BaseHandler struct {
 	Logger  *slog.Logger
 	Queries *model.Queries
@@ -49,7 +33,7 @@ func (h *BaseHandler) getIDFromURL(r *http.Request) (int64, error) {
 	param := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(param, 10, 64)
 	if err != nil {
-		return -1, NewAppError(http.StatusBadRequest, "id must be an integer")
+		return -1, util.NewAppError(http.StatusBadRequest, "id must be an integer")
 	}
 
 	return id, nil
@@ -64,7 +48,7 @@ func (h *BaseHandler) bindFormData(r *http.Request, dest any) error {
 	}
 
 	if err := formDecoder.Decode(dest, r.Form); err != nil {
-		return NewAppError(http.StatusBadRequest, err.Error())
+		return util.NewAppError(http.StatusBadRequest, err.Error())
 	}
 
 	return nil
@@ -73,21 +57,39 @@ func (h *BaseHandler) bindFormData(r *http.Request, dest any) error {
 func (h *BaseHandler) handleDBError(err error) error {
 	h.Logger.Error("DATABASE_ERROR", util.ErrorSlog(err))
 	if errors.Is(err, sql.ErrNoRows) {
-		return NewAppError(http.StatusNotFound, "Resource does not exist")
+		return util.NewAppError(http.StatusNotFound, "Resource does not exist")
 	}
 
-	return NewAppError(http.StatusInternalServerError, "Error reading from database")
+	return util.NewAppError(http.StatusInternalServerError, "Error reading from database")
+}
+
+// checks if the date matches either "YYYY" or "YYYY-MM"
+func validateYearMonth(fl validator.FieldLevel) bool {
+	d := fl.Field().String()
+
+	// Try parsing as "2006"
+	if _, err := time.Parse("2006", d); err == nil {
+		return true
+	}
+
+	// Try parsing as "2006-01"
+	if _, err := time.Parse("2006-01", d); err == nil {
+		return true
+	}
+
+	return false
 }
 
 func newValidate() *validator.Validate {
 	validate := validator.New()
 	validate.RegisterValidation("notblank", validators.NotBlank) //nolint:errcheck,gosec
+	validate.RegisterValidation("yearmonth", validateYearMonth)  //nolint:errcheck,gosec
 	return validate
 }
 
 var validate = newValidate()
 
-func parseValidationErrors(err error) map[string]string {
+func (h *BaseHandler) parseValidationErrors(err error) map[string]string {
 	errMsgs := make(map[string]string)
 
 	var validationErrors validator.ValidationErrors
@@ -109,7 +111,12 @@ func parseValidationErrors(err error) map[string]string {
 				msg = fmt.Sprintf("%s contains invalid characters", fieldErr.Field())
 			case "notblank":
 				msg = fmt.Sprintf("%s cannot be blank", fieldErr.Field())
+			case "oneof":
+				msg = fmt.Sprintf("%s must be one of [%s]", fieldErr.Field(), fieldErr.Param())
+			case "yearmonth":
+				msg = fmt.Sprintf("%s must be in the format YYYY or YYYY-MM", fieldErr.Field())
 			default:
+				h.Logger.Debug("default case", slog.String("type", fieldErr.Tag()))
 				msg = fmt.Sprintf("%s is invalid", fieldErr.Field())
 			}
 			errMsgs[fieldErr.Field()] = msg
