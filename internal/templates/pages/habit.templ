@@ -6,27 +6,73 @@ import (
 	"github.com/tneuqole/habitmap/internal/templates"
 	"github.com/tneuqole/habitmap/internal/templates/components"
 	"github.com/tneuqole/habitmap/internal/templates/layouts"
-	"github.com/tneuqole/habitmap/internal/util"
 )
 
-var btnCSS = "w-7 h-7 mx-2 rounded-md bg-blue-600 text-center text-white hover:bg-blue-700 transition"
+var (
+	btnCSS             = "w-7 h-7 mx-2 rounded-md bg-blue-600 text-center text-white hover:bg-blue-700 transition"
+	viewSelectedCSS    = "w-1/2 py-1 font-bold text-center bg-blue-600 text-white"
+	viewNotSelectedCSS = "w-1/2 py-1 font-bold text-blue-600 text-center transition hover:bg-blue-700 hover:text-white"
+)
 
-templ Habit(habit model.Habit, months []string, entriesForMonths map[string][][]model.Entry, appErr *util.AppError) {
-	@layouts.Base("Habit", appErr) {
+templ Habit(habit model.Habit, view, date string, months []string, entriesForMonths map[string][][]model.Entry) {
+	@layouts.Base("Habit") {
 		<div class="flex flex-col">
-			<div class="grid grid-cols-3">
+			<div
+				class="grid grid-cols-3"
+			>
 				<h1 class={ templates.H1CSS + " flex items-center" }>
 					<a href={ templ.URL(fmt.Sprintf("/habits/%d", habit.ID)) }>{ habit.Name }</a>
 				</h1>
 				<div class="flex flex-row items-center justify-center">
-					<button class={ btnCSS }>&lt;</button>
-					<p class="font-bold text-xl">2025</p>
-					<button class={ btnCSS }>&gt;</button>
+					<button
+						class={ btnCSS }
+						hx-get={ fmt.Sprintf("/habits/%d?view=%s&date=%s", habit.ID, view, templates.UpdateDate(date, view, -1)) }
+						hx-target="body"
+						hx-push-url="true"
+					>
+						&lt;
+					</button>
+					<p class="font-bold text-xl">{ templates.FormatDate(date, view) }</p>
+					<button
+						class={ btnCSS }
+						hx-get={ fmt.Sprintf("/habits/%d?view=%s&date=%s", habit.ID, view, templates.UpdateDate(date, view, +1)) }
+						hx-target="body"
+						hx-push-url="true"
+					>
+						&gt;
+					</button>
 				</div>
 				<div class="flex flex-row justify-self-end">
 					<div class="flex items-center font-normal m-2 rounded-md border-2 border-blue-600 overflow-hidden w-36 h-8">
-						<div class="w-1/2 py-1 font-bold text-center bg-blue-600 text-white">Year</div>
-						<div class="w-1/2 py-1 font-bold text-blue-600 text-center transition hover:bg-blue-700 hover:text-white">Month</div>
+						{{
+							var (
+								yearCSS  string
+								monthCSS string
+							)
+							if view == "year" {
+								yearCSS = viewSelectedCSS
+								monthCSS = viewNotSelectedCSS
+							} else {
+								yearCSS = viewNotSelectedCSS
+								monthCSS = viewSelectedCSS
+							}
+						}}
+						<div
+							class={ yearCSS }
+							hx-get={ fmt.Sprintf("/habits/%d?view=%s&date=%s", habit.ID, "year", date) }
+							hx-target="body"
+							hx-push-url="true"
+						>
+							Year
+						</div>
+						<div
+							class={ monthCSS }
+							hx-get={ fmt.Sprintf("/habits/%d?view=%s&date=%s", habit.ID, "month", date) }
+							hx-target="body"
+							hx-push-url="true"
+						>
+							Month
+						</div>
 					</div>
 					<div class="" x-data="{ open: false }">
 						<button

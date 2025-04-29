@@ -9,11 +9,11 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/tneuqole/habitmap/internal/ctxutil"
 	"github.com/tneuqole/habitmap/internal/templates/components"
-	"github.com/tneuqole/habitmap/internal/util"
 )
 
-func Base(title string, appErr *util.AppError) templ.Component {
+func Base(title string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -59,8 +59,8 @@ func Base(title string, appErr *util.AppError) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if appErr != nil {
-			templ_7745c5c3_Err = components.Flash(*appErr).Render(ctx, templ_7745c5c3_Buffer)
+		if appError, ok := ctxutil.GetAppError(ctx); ok {
+			templ_7745c5c3_Err = components.Flash(appError).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

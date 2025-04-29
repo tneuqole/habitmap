@@ -14,11 +14,15 @@ import (
 	"github.com/go-playground/form/v4"
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
+	"github.com/tneuqole/habitmap/internal/apperror"
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/util"
 )
 
-const daysInWeek = 7
+const (
+	daysInWeek   = 7
+	monthsInYear = 12
+)
 
 type BaseHandler struct {
 	Logger  *slog.Logger
@@ -33,7 +37,7 @@ func (h *BaseHandler) getIDFromURL(r *http.Request) (int64, error) {
 	param := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(param, 10, 64)
 	if err != nil {
-		return -1, util.NewAppError(http.StatusBadRequest, "id must be an integer")
+		return -1, apperror.New(http.StatusBadRequest, "id must be an integer")
 	}
 
 	return id, nil
@@ -48,7 +52,7 @@ func (h *BaseHandler) bindFormData(r *http.Request, dest any) error {
 	}
 
 	if err := formDecoder.Decode(dest, r.Form); err != nil {
-		return util.NewAppError(http.StatusBadRequest, err.Error())
+		return apperror.New(http.StatusBadRequest, err.Error())
 	}
 
 	return nil
@@ -57,22 +61,15 @@ func (h *BaseHandler) bindFormData(r *http.Request, dest any) error {
 func (h *BaseHandler) handleDBError(err error) error {
 	h.Logger.Error("DATABASE_ERROR", util.ErrorSlog(err))
 	if errors.Is(err, sql.ErrNoRows) {
-		return util.NewAppError(http.StatusNotFound, "Resource does not exist")
+		return apperror.New(http.StatusNotFound, "Resource does not exist")
 	}
 
-	return util.NewAppError(http.StatusInternalServerError, "Error reading from database")
+	return apperror.New(http.StatusInternalServerError, "Error reading from database")
 }
 
-// checks if the date matches either "YYYY" or "YYYY-MM"
+// checks if the date matches "YYYY-MM" format
 func validateYearMonth(fl validator.FieldLevel) bool {
 	d := fl.Field().String()
-
-	// Try parsing as "2006"
-	if _, err := time.Parse("2006", d); err == nil {
-		return true
-	}
-
-	// Try parsing as "2006-01"
 	if _, err := time.Parse("2006-01", d); err == nil {
 		return true
 	}
@@ -139,7 +136,7 @@ func (h *BaseHandler) parseValidationErrors(err error) map[string]string {
 // Returns:
 //
 //	[][]model.Entry: A 2D slice with weekly habit entries.
-func (h *BaseHandler) generateMonth(monthStr string, entries []model.Entry) [][]model.Entry {
+func (h *BaseHandler) generateMonth(habitID int64, monthStr string, entries []model.Entry) [][]model.Entry {
 	var month [][]model.Entry
 	week := make([]model.Entry, daysInWeek)
 
@@ -151,12 +148,11 @@ func (h *BaseHandler) generateMonth(monthStr string, entries []model.Entry) [][]
 
 	daysInMonth := date.AddDate(0, 1, -1).Day()
 
-	habitID := entries[0].HabitID
 	entryIdx := 0
 	dayOfWeek := int(date.Weekday())
 	for day := date.Day(); day <= daysInMonth; {
 		for ; dayOfWeek < daysInWeek && day <= daysInMonth; dayOfWeek++ {
-			if entryIdx < len(entries) && entries[entryIdx].EntryDate == date.Format("2006-01-02") {
+			if entryIdx < len(entries) && len(entries) > 0 && entries[entryIdx].EntryDate == date.Format("2006-01-02") {
 				week[dayOfWeek] = entries[entryIdx]
 				entryIdx++
 			} else {
@@ -180,4 +176,23 @@ func (h *BaseHandler) generateMonth(monthStr string, entries []model.Entry) [][]
 	}
 
 	return month
+}
+
+func (h *BaseHandler) generateYearMonths(date string) ([]string, error) {
+	t, err := time.Parse("2006-01", date)
+	if err != nil {
+		h.Logger.Error("invalid date format", util.ErrorSlog(err))
+		return nil, apperror.New(http.StatusBadRequest, "invalid date format")
+	}
+
+	year := t.Year()
+	months := make([]string, 0, monthsInYear)
+
+	for month := 1; month <= 12; month++ {
+		// Format each month as "YYYY-MM"
+		m := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+		months = append(months, m.Format("2006-01"))
+	}
+
+	return months, nil
 }

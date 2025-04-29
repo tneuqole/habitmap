@@ -1,12 +1,12 @@
 package components
 
-import "github.com/tneuqole/habitmap/internal/util"
+import "github.com/tneuqole/habitmap/internal/apperror"
 
-templ Flash(appErr util.AppError) {
+templ Flash(err apperror.AppError) {
 	<div id="flash" class="flex justify-center items-center">
 		<div class="relative bg-red-500 text-white p-4 rounded-md shadow-md mb-4 w-1/2">
 			<span id="close-flash" class="absolute top-0 right-0 p-2 cursor-pointer text-white font-bold">&times;</span>
-			<pre class="font-sans text-wrap">{ appErr.Message }</pre>
+			<pre class="font-sans text-wrap">{ err.Message }</pre>
 		</div>
 	</div>
 	<script>
