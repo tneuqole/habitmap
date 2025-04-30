@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
 	"github.com/tneuqole/habitmap/internal/apperror"
+	"github.com/tneuqole/habitmap/internal/ctxutil"
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/util"
 )
@@ -178,7 +180,47 @@ func (h *BaseHandler) generateMonth(habitID int64, monthStr string, entries []mo
 	return month
 }
 
-func (h *BaseHandler) generateYearMonths(date string) ([]string, error) {
+func (h *BaseHandler) bindAndValidateGetHabitParams(w http.ResponseWriter, r *http.Request) (*http.Request, *getHabitParams, error) {
+	params := newGetHabitParams()
+	if err := h.bindFormData(r, &params); err != nil {
+		return r, nil, err
+	}
+
+	err := validate.Struct(&params)
+	if err != nil {
+		errors := h.parseValidationErrors(err)
+		appErr := apperror.FromMap(http.StatusBadRequest, errors)
+		r = ctxutil.SetAppError(r, appErr)
+		w.WriteHeader(http.StatusBadRequest)
+		params = newGetHabitParams()
+	}
+
+	return r, &params, nil
+}
+
+func (h *HabitHandler) fetchEntriesForView(ctx context.Context, habitID int64, view, date string) ([]model.Entry, error) {
+	switch view {
+	case "year":
+		return h.Queries.GetEntriesForHabitByYear(ctx, model.GetEntriesForHabitByYearParams{
+			HabitID:   habitID,
+			EntryDate: date[:4], // YYYY
+		})
+	case "month":
+		return h.Queries.GetEntriesForHabitByYearAndMonth(ctx, model.GetEntriesForHabitByYearAndMonthParams{
+			HabitID:   habitID,
+			EntryDate: date, // YYYY-MM
+		})
+	default:
+		return nil, apperror.New(http.StatusBadRequest, "view is invalid")
+	}
+}
+
+func (h *HabitHandler) generateMonths(view, date string) ([]string, error) {
+	if view == "month" {
+		return []string{date}, nil
+	}
+
+	// view = "year"
 	t, err := time.Parse("2006-01", date)
 	if err != nil {
 		h.Logger.Error("invalid date format", util.ErrorSlog(err))
@@ -195,4 +237,18 @@ func (h *BaseHandler) generateYearMonths(date string) ([]string, error) {
 	}
 
 	return months, nil
+}
+
+func (h *HabitHandler) groupEntriesByMonth(habitID int64, entries []model.Entry, sortedMonths []string) map[string][][]model.Entry {
+	entriesByMonthMap := make(map[string][]model.Entry)
+	for _, entry := range entries {
+		key := entry.EntryDate[:7] // YYYY-MM
+		entriesByMonthMap[key] = append(entriesByMonthMap[key], entry)
+	}
+
+	months := make(map[string][][]model.Entry)
+	for _, month := range sortedMonths {
+		months[month] = h.generateMonth(habitID, month, entriesByMonthMap[month])
+	}
+	return months
 }

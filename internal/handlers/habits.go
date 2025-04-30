@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tneuqole/habitmap/internal/apperror"
-	"github.com/tneuqole/habitmap/internal/ctxutil"
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/templates"
 	"github.com/tneuqole/habitmap/internal/templates/forms"
@@ -50,18 +48,9 @@ func (h *HabitHandler) GetHabit(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	params := newGetHabitParams()
-	if err = h.bindFormData(r, &params); err != nil {
-		return err
-	}
-
-	err = validate.Struct(&params)
+	r, params, err := h.bindAndValidateGetHabitParams(w, r)
 	if err != nil {
-		errors := h.parseValidationErrors(err)
-		appErr := apperror.FromMap(http.StatusBadRequest, errors)
-		r = ctxutil.SetAppError(r, appErr)
-		w.WriteHeader(http.StatusBadRequest)
-		params = newGetHabitParams()
+		return err
 	}
 
 	habit, err := h.Queries.GetHabit(r.Context(), habitID)
@@ -69,54 +58,19 @@ func (h *HabitHandler) GetHabit(w http.ResponseWriter, r *http.Request) error {
 		return h.handleDBError(err)
 	}
 
-	var entries []model.Entry
-
-	if params.View == "year" {
-		entries, err = h.Queries.GetEntriesForHabitByYear(r.Context(), model.GetEntriesForHabitByYearParams{
-			HabitID:   habitID,
-			EntryDate: params.Date[:4], // YYYY
-		})
-	} else {
-		entries, err = h.Queries.GetEntriesForHabitByYearAndMonth(r.Context(), model.GetEntriesForHabitByYearAndMonthParams{
-			HabitID:   habitID,
-			EntryDate: params.Date, // YYYY-MM
-		})
-	}
+	entries, err := h.fetchEntriesForView(r.Context(), habitID, params.View, params.Date)
 	if err != nil {
 		return h.handleDBError(err)
 	}
 
-	// group entries by month
-	entriesByMonthMap := make(map[string][]model.Entry)
-	for _, entry := range entries {
-		key := entry.EntryDate[:7] // YYYY-MM
-		entriesByMonthMap[key] = append(entriesByMonthMap[key], entry)
+	monthKeys, err := h.generateMonths(params.View, params.Date)
+	if err != nil {
+		return err
 	}
 
-	// sort months from past to present
-	var sortedMonths []string
-	if params.View == "year" {
-		sortedMonths, err = h.generateYearMonths(params.Date)
-		if err != nil {
-			return err
-		}
-	} else {
-		sortedMonths = []string{params.Date}
-	}
+	months := h.groupEntriesByMonth(habitID, entries, monthKeys)
 
-	// parse entries into 2D arrays representing a month
-	months := make(map[string][][]model.Entry)
-	for _, month := range sortedMonths {
-		var entriesForMonth []model.Entry
-		if val, ok := entriesByMonthMap[month]; ok {
-			entriesForMonth = val
-		} else {
-			entriesForMonth = make([]model.Entry, 0)
-		}
-		months[month] = h.generateMonth(habitID, month, entriesForMonth)
-	}
-
-	return h.render(w, r, pages.Habit(habit, params.View, params.Date, sortedMonths, months))
+	return h.render(w, r, pages.Habit(habit, params.View, params.Date, monthKeys, months))
 }
 
 func (h *HabitHandler) DeleteHabit(w http.ResponseWriter, r *http.Request) error {
