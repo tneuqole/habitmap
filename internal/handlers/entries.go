@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/tneuqole/habitmap/internal/model"
+	"github.com/tneuqole/habitmap/internal/templates/components"
 )
 
 type EntryHandler struct {
@@ -18,8 +18,8 @@ func NewEntryHandler(bh *BaseHandler) *EntryHandler {
 }
 
 type createEntryForm struct {
-	HabitID   int64  `form:"habit_id" validate:"required,notblank"`
-	EntryDate string `form:"entry_date" validate:"required,notblank"`
+	HabitID   int64  `form:"habitId" validate:"required,notblank"`
+	EntryDate string `form:"entryDate" validate:"required,notblank"`
 }
 
 func (h *EntryHandler) PostEntry(w http.ResponseWriter, r *http.Request) error {
@@ -39,8 +39,7 @@ func (h *EntryHandler) PostEntry(w http.ResponseWriter, r *http.Request) error {
 		return h.handleDBError(err)
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/habits/%d", entry.HabitID), http.StatusSeeOther)
-	return nil
+	return h.render(w, r, components.Entry(entry))
 }
 
 func (h *EntryHandler) DeleteEntry(w http.ResponseWriter, r *http.Request) error {
@@ -49,13 +48,11 @@ func (h *EntryHandler) DeleteEntry(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	err = h.Queries.DeleteEntry(r.Context(), entryID)
+	entry, err := h.Queries.DeleteEntry(r.Context(), entryID)
 	if err != nil {
 		return h.handleDBError(err)
 	}
 
-	w.Header().Set("HX-Redirect", "/habits") // TODO
-	w.WriteHeader(http.StatusNoContent)
-
-	return nil
+	entry.ID = 0
+	return h.render(w, r, components.Entry(entry))
 }

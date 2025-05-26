@@ -1,6 +1,9 @@
 package layouts
 
-import "github.com/tneuqole/habitmap/internal/templates/components"
+import (
+	"github.com/tneuqole/habitmap/internal/ctxutil"
+	"github.com/tneuqole/habitmap/internal/templates/components"
+)
 
 templ Base(title string) {
 	<html lang="en">
@@ -11,11 +14,14 @@ templ Base(title string) {
 			<script src="https://unpkg.com/htmx.org@2.0.2"></script>
 			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 		</head>
-		<body class="flex flex-col min-h-screen">
+		<body hx-boost="true" class="flex flex-col min-h-screen">
 			<header>
 				@components.Nav()
 			</header>
 			<main class="flex-1 m-4">
+				if appError, ok := ctxutil.GetAppError(ctx); ok {
+					@components.Flash(appError)
+				}
 				{ children... }
 			</main>
 			<footer class="">

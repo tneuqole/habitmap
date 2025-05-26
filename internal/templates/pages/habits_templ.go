@@ -52,7 +52,7 @@ func Habits(habits []model.Habit) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			for _, habit := range habits {
-				templ_7745c5c3_Err = components.Habit(habit, nil, nil).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.Habit(habit, nil, nil, true).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

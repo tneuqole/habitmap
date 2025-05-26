@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"sort"
+	"time"
 
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/templates"
@@ -30,8 +30,25 @@ func (h *HabitHandler) GetHabits(w http.ResponseWriter, r *http.Request) error {
 	return h.render(w, r, pages.Habits(habits))
 }
 
+type getHabitParams struct {
+	View string `form:"view" validate:"required,oneof=year month"`
+	Date string `form:"date" validate:"required,yearmonth"`
+}
+
+func newGetHabitParams() getHabitParams {
+	return getHabitParams{
+		View: "year",
+		Date: time.Now().Format("2006-01"),
+	}
+}
+
 func (h *HabitHandler) GetHabit(w http.ResponseWriter, r *http.Request) error {
 	habitID, err := h.getIDFromURL(r)
+	if err != nil {
+		return err
+	}
+
+	r, params, err := h.bindAndValidateGetHabitParams(w, r)
 	if err != nil {
 		return err
 	}
@@ -41,31 +58,19 @@ func (h *HabitHandler) GetHabit(w http.ResponseWriter, r *http.Request) error {
 		return h.handleDBError(err)
 	}
 
-	entries, err := h.Queries.GetEntriesForHabit(r.Context(), habit.ID)
+	entries, err := h.fetchEntriesForView(r.Context(), habitID, params.View, params.Date)
 	if err != nil {
 		return h.handleDBError(err)
 	}
 
-	// group entries by month
-	entriesMonthMap := make(map[string][]model.Entry)
-	for _, entry := range entries {
-		key := entry.EntryDate[:7] // YYYY-MM
-		entriesMonthMap[key] = append(entriesMonthMap[key], entry)
+	monthKeys, err := h.generateMonths(params.View, params.Date)
+	if err != nil {
+		return err
 	}
 
-	// sort months from past to present
-	var sortedMonths []string
-	for key := range entriesMonthMap {
-		sortedMonths = append(sortedMonths, key)
-	}
-	sort.Strings(sortedMonths)
+	months := h.groupEntriesByMonth(habitID, entries, monthKeys)
 
-	// parse entries into 2D arrays representing a month
-	entriesForMonths := make(map[string][][]model.Entry)
-	for monthStr, entries := range entriesMonthMap {
-		entriesForMonths[monthStr] = h.generateMonth(monthStr, entries)
-	}
-	return h.render(w, r, pages.Habit(habit, sortedMonths, entriesForMonths))
+	return h.render(w, r, pages.Habit(habit, params.View, params.Date, monthKeys, months))
 }
 
 func (h *HabitHandler) DeleteHabit(w http.ResponseWriter, r *http.Request) error {
@@ -101,7 +106,7 @@ func (h *HabitHandler) PostHabit(w http.ResponseWriter, r *http.Request) error {
 
 	err := validate.Struct(&form)
 	if err != nil {
-		errors := parseValidationErrors(err)
+		errors := h.parseValidationErrors(err)
 		data := templates.HabitFormData{
 			Name:   form.Name,
 			Errors: errors,
@@ -139,7 +144,7 @@ func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) e
 
 	err = validate.Struct(&form)
 	if err != nil {
-		errors := parseValidationErrors(err)
+		errors := h.parseValidationErrors(err)
 		data := templates.HabitFormData{
 			Name:   form.Name,
 			Errors: errors,

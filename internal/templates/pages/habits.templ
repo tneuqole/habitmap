@@ -12,7 +12,7 @@ templ Habits(habits []model.Habit) {
 			<a href="/habits/new" class="w-10 self-end bg-blue-600 text-center text-white font-medium my-1 py-1 rounded-md hover:bg-blue-700 transition">+</a>
 			<div class="">
 				for _, habit := range habits {
-					@components.Habit(habit, nil, nil)
+					@components.Habit(habit, nil, nil, true)
 				}
 			</div>
 		</div>

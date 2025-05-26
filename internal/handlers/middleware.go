@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/tneuqole/habitmap/internal/apperror"
 	"github.com/tneuqole/habitmap/internal/util"
 )
 
@@ -16,7 +17,7 @@ func (h *BaseHandler) Wrap(f HandlerFunc) http.HandlerFunc {
 		if err := f(w, r); err != nil {
 			h.Logger.Error("API_ERROR", util.ErrorSlog(err), slog.String("error_type", fmt.Sprintf("%T", err)))
 
-			var appErr AppError
+			var appErr apperror.AppError
 			if errors.As(err, &appErr) {
 				w.WriteHeader(appErr.StatusCode)
 				// TODO: render error page
