@@ -1,17 +1,19 @@
-package forms
+package formcomponents
 
 import (
+	"fmt"
+	"github.com/tneuqole/habitmap/internal/forms"
 	"github.com/tneuqole/habitmap/internal/templates"
 	"github.com/tneuqole/habitmap/internal/templates/layouts"
 )
 
-templ CreateHabit(data templates.HabitFormData) {
-	@layouts.Base("Create Habit") {
+templ UpdateHabit(habitID int64, data forms.CreateHabitForm) {
+	@layouts.Base("Update Habit") {
 		<div class="flex flex-col mx-auto items-center w-1/3">
-			<h1 class={ templates.H1CSS }>Create Habit</h1>
-			<form action="/habits/new" method="POST" class="w-full py-2">
+			<h1 class={ templates.H1CSS }>Update Habit</h1>
+			<form action={ templ.URL(fmt.Sprintf("/habits/%d/edit", habitID)) } method="POST" class="w-full py-2">
 				<div class="flex flex-col">
-					<label for="name" class="my-1">Name</label>
+					<label for="name" class="my-1">New Name</label>
 					<input type="text" name="name" id="name" value={ data.Name } class="my-1 py-1 px-2 border rounded-md border-solid border-black"/>
 					if data.Errors["Name"] != "" {
 						<span class="text-red-500 text-sm">{ data.Errors["Name"] }</span>

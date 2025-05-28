@@ -4,6 +4,10 @@
 
 package model
 
+import (
+	"time"
+)
+
 type Entry struct {
 	ID        int64
 	EntryDate string
@@ -14,4 +18,12 @@ type Habit struct {
 	ID        int64
 	Name      string
 	CreatedAt int64
+}
+
+type User struct {
+	ID             int64
+	Name           string
+	Email          string
+	HashedPassword string
+	CreatedAt      time.Time
 }

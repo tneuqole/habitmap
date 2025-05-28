@@ -60,6 +60,10 @@ func main() {
 		http.Redirect(w, r, "/habits", http.StatusFound)
 	})
 
+	userHandler := handlers.NewUserHandler(h)
+	r.Get("/users/signup", h.Wrap(userHandler.GetSignupForm))
+	r.Post("/users/signup", h.Wrap(userHandler.PostSignup))
+
 	habitHandler := handlers.NewHabitHandler(h)
 	r.Get("/habits", h.Wrap(habitHandler.GetHabits))
 	r.Get("/habits/{id}", h.Wrap(habitHandler.GetHabit))

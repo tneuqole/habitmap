@@ -10,7 +10,10 @@ import (
 )
 
 const createEntry = `-- name: CreateEntry :one
-INSERT INTO entries (entry_date, habit_id) VALUES (?, ?) RETURNING id, entry_date, habit_id
+INSERT INTO entries
+(entry_date, habit_id)
+VALUES (?, ?)
+RETURNING id, entry_date, habit_id
 `
 
 type CreateEntryParams struct {
@@ -26,7 +29,9 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry
 }
 
 const createHabit = `-- name: CreateHabit :one
-INSERT INTO habits (name, created_at) VALUES (?, unixepoch()) RETURNING id, name, created_at
+INSERT INTO habits (name, created_at)
+VALUES (?, unixepoch())
+RETURNING id, name, created_at
 `
 
 func (q *Queries) CreateHabit(ctx context.Context, name string) (Habit, error) {
@@ -34,6 +39,26 @@ func (q *Queries) CreateHabit(ctx context.Context, name string) (Habit, error) {
 	var i Habit
 	err := row.Scan(&i.ID, &i.Name, &i.CreatedAt)
 	return i, err
+}
+
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (name, email, hashed_password)
+VALUES (?, ?, ?)
+RETURNING
+    id
+`
+
+type CreateUserParams struct {
+	Name           string
+	Email          string
+	HashedPassword string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, createUser, arg.Name, arg.Email, arg.HashedPassword)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const deleteEntry = `-- name: DeleteEntry :one

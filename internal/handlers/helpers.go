@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -64,6 +65,10 @@ func (h *BaseHandler) handleDBError(err error) error {
 	h.Logger.Error("DATABASE_ERROR", util.ErrorSlog(err))
 	if errors.Is(err, sql.ErrNoRows) {
 		return apperror.New(http.StatusNotFound, "Resource does not exist")
+	}
+
+	if strings.Contains(err.Error(), "UNIQUE constraint failed: users.email") {
+		return apperror.ErrDuplicateEmail
 	}
 
 	return apperror.New(http.StatusInternalServerError, "Error reading from database")

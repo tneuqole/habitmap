@@ -2,6 +2,7 @@ package apperror
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 )
 
@@ -32,3 +33,5 @@ func FromMap(code int, m map[string]string) AppError {
 func (e AppError) Error() string {
 	return fmt.Sprintf("%d: %s", e.StatusCode, e.Message)
 }
+
+var ErrDuplicateEmail = New(http.StatusBadRequest, "A user with this email already exists")

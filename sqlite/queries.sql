@@ -1,5 +1,13 @@
+-- name: CreateUser :one
+INSERT INTO users (name, email, hashed_password)
+VALUES (?, ?, ?)
+RETURNING
+    id;
+
 -- name: CreateHabit :one
-INSERT INTO habits (name, created_at) VALUES (?, unixepoch()) RETURNING *;
+INSERT INTO habits (name, created_at)
+VALUES (?, unixepoch())
+RETURNING *;
 
 -- name: GetHabit :one
 SELECT
@@ -26,7 +34,10 @@ DELETE FROM habits
 WHERE id = ?;
 
 -- name: CreateEntry :one
-INSERT INTO entries (entry_date, habit_id) VALUES (?, ?) RETURNING *;
+INSERT INTO entries
+(entry_date, habit_id)
+VALUES (?, ?)
+RETURNING *;
 
 -- name: GetEntriesForHabitByYear :many
 SELECT

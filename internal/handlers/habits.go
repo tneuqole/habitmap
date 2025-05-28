@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/tneuqole/habitmap/internal/forms"
 	"github.com/tneuqole/habitmap/internal/model"
-	"github.com/tneuqole/habitmap/internal/templates"
-	"github.com/tneuqole/habitmap/internal/templates/forms"
+	"github.com/tneuqole/habitmap/internal/templates/formcomponents"
 	"github.com/tneuqole/habitmap/internal/templates/pages"
 )
 
@@ -91,27 +91,19 @@ func (h *HabitHandler) DeleteHabit(w http.ResponseWriter, r *http.Request) error
 }
 
 func (h *HabitHandler) GetCreateHabitForm(w http.ResponseWriter, r *http.Request) error {
-	return h.render(w, r, forms.CreateHabit(templates.HabitFormData{}))
-}
-
-type createHabitForm struct {
-	Name string `form:"name" validate:"required,notblank,min=1,max=32"`
+	return h.render(w, r, formcomponents.CreateHabit(forms.CreateHabitForm{}))
 }
 
 func (h *HabitHandler) PostHabit(w http.ResponseWriter, r *http.Request) error {
-	var form createHabitForm
+	var form forms.CreateHabitForm
 	if err := h.bindFormData(r, &form); err != nil {
 		return err
 	}
 
 	err := validate.Struct(&form)
 	if err != nil {
-		errors := h.parseValidationErrors(err)
-		data := templates.HabitFormData{
-			Name:   form.Name,
-			Errors: errors,
-		}
-		return h.render(w, r, forms.CreateHabit(data))
+		form.Errors = h.parseValidationErrors(err)
+		return h.render(w, r, formcomponents.CreateHabit(form))
 	}
 
 	habit, err := h.Queries.CreateHabit(r.Context(), form.Name)
@@ -128,7 +120,7 @@ func (h *HabitHandler) GetUpdateHabitForm(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	return h.render(w, r, forms.UpdateHabit(templates.HabitFormData{ID: habitID}))
+	return h.render(w, r, formcomponents.UpdateHabit(habitID, forms.CreateHabitForm{}))
 }
 
 func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) error {
@@ -137,19 +129,15 @@ func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	var form createHabitForm
+	var form forms.CreateHabitForm
 	if err := h.bindFormData(r, &form); err != nil {
 		return err
 	}
 
 	err = validate.Struct(&form)
 	if err != nil {
-		errors := h.parseValidationErrors(err)
-		data := templates.HabitFormData{
-			Name:   form.Name,
-			Errors: errors,
-		}
-		return h.render(w, r, forms.UpdateHabit(data))
+		form.Errors = h.parseValidationErrors(err)
+		return h.render(w, r, formcomponents.UpdateHabit(habitID, form))
 	}
 
 	habit, err := h.Queries.UpdateHabit(r.Context(), model.UpdateHabitParams{
