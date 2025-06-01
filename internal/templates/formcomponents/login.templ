@@ -6,16 +6,14 @@ import (
 	"github.com/tneuqole/habitmap/internal/templates/layouts"
 )
 
-templ Signup(data forms.SignupForm) {
-	@layouts.Base("Signup") {
+templ Login(data forms.LoginForm) {
+	@layouts.Base("Login") {
 		<div class="flex flex-col mx-auto items-center w-1/3">
-			<h1 class={ templates.H1CSS }>Signup</h1>
-			<form action={ templ.URL("/users/signup") } method="POST" class="w-full py-2">
+			<h1 class={ templates.H1CSS }>Login</h1>
+			<form action={ templ.URL("/users/login") } method="POST" class="w-full py-2">
 				<div class="flex flex-col">
-					<label for="name" class="my-1">Username</label>
-					<input type="text" name="name" id="name" value={ data.Name } class="my-1 py-1 px-2 border rounded-md border-solid border-black"/>
-					if data.FieldErrors["Name"] != "" {
-						<span class="text-red-500 text-sm">{ data.FieldErrors["Name"] }</span>
+					for _, msg := range data.GenericErrors {
+						<span class="text-red-500 text-sm">{ msg }</span>
 					}
 					<label for="email" class="my-1">Email</label>
 					<input type="text" name="email" id="email" value={ data.Email } class="my-1 py-1 px-2 border rounded-md border-solid border-black"/>

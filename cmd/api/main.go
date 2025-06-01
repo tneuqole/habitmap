@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/mattn/go-sqlite3"
@@ -42,14 +43,21 @@ func main() {
 
 	queries := model.New(db)
 
+	// TODO: other config and use env var for secure
+	sessions := scs.New()
+	sessions.Lifetime = 24 * time.Hour //nolint:mnd
+	sessions.Cookie.Secure = false
+
 	h := &handlers.BaseHandler{
-		Logger:  logger,
-		Queries: queries,
+		Logger:   logger,
+		Queries:  queries,
+		Sessions: sessions,
 	}
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(sessions.LoadAndSave)
 
 	r.Get("/health", h.Wrap(handlers.GetHealth))
 
@@ -63,6 +71,8 @@ func main() {
 	userHandler := handlers.NewUserHandler(h)
 	r.Get("/users/signup", h.Wrap(userHandler.GetSignupForm))
 	r.Post("/users/signup", h.Wrap(userHandler.PostSignup))
+	r.Get("/users/login", h.Wrap(userHandler.GetLoginForm))
+	r.Post("/users/login", h.Wrap(userHandler.PostLogin))
 
 	habitHandler := handlers.NewHabitHandler(h)
 	r.Get("/habits", h.Wrap(habitHandler.GetHabits))

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/form/v4"
 	"github.com/go-playground/validator/v10"
@@ -28,8 +29,9 @@ const (
 )
 
 type BaseHandler struct {
-	Logger  *slog.Logger
-	Queries *model.Queries
+	Logger   *slog.Logger
+	Queries  *model.Queries
+	Sessions *scs.SessionManager
 }
 
 func (h *BaseHandler) render(w http.ResponseWriter, r *http.Request, component templ.Component) error {

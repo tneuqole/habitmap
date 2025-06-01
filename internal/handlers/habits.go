@@ -102,7 +102,7 @@ func (h *HabitHandler) PostHabit(w http.ResponseWriter, r *http.Request) error {
 
 	err := validate.Struct(&form)
 	if err != nil {
-		form.Errors = h.parseValidationErrors(err)
+		form.FieldErrors = h.parseValidationErrors(err)
 		return h.render(w, r, formcomponents.CreateHabit(form))
 	}
 
@@ -136,7 +136,7 @@ func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) e
 
 	err = validate.Struct(&form)
 	if err != nil {
-		form.Errors = h.parseValidationErrors(err)
+		form.FieldErrors = h.parseValidationErrors(err)
 		return h.render(w, r, formcomponents.UpdateHabit(habitID, form))
 	}
 

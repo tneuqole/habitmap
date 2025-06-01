@@ -86,15 +86,15 @@ func CreateHabit(data forms.CreateHabitForm) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if data.Errors["Name"] != "" {
+			if data.FieldErrors["Name"] != "" {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<span class=\"text-red-500 text-sm\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(data.Errors["Name"])
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(data.FieldErrors["Name"])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/formcomponents/create_habit.templ`, Line: 18, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/formcomponents/create_habit.templ`, Line: 18, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {

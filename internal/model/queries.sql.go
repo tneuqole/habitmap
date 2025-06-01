@@ -206,6 +206,35 @@ func (q *Queries) GetHabits(ctx context.Context) ([]Habit, error) {
 	return items, nil
 }
 
+const getUser = `-- name: GetUser :one
+SELECT
+    id,
+    name,
+    email,
+    hashed_password
+FROM users
+WHERE email = ?
+`
+
+type GetUserRow struct {
+	ID             int64
+	Name           string
+	Email          string
+	HashedPassword string
+}
+
+func (q *Queries) GetUser(ctx context.Context, email string) (GetUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getUser, email)
+	var i GetUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.HashedPassword,
+	)
+	return i, err
+}
+
 const updateHabit = `-- name: UpdateHabit :one
 UPDATE habits SET name = ?
 WHERE id = ?

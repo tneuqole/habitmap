@@ -4,6 +4,15 @@ VALUES (?, ?, ?)
 RETURNING
     id;
 
+-- name: GetUser :one
+SELECT
+    id,
+    name,
+    email,
+    hashed_password
+FROM users
+WHERE email = ?;
+
 -- name: CreateHabit :one
 INSERT INTO habits (name, created_at)
 VALUES (?, unixepoch())
