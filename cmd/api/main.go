@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/tneuqole/habitmap/internal/handlers"
 	"github.com/tneuqole/habitmap/internal/model"
+	"github.com/tneuqole/habitmap/internal/session"
 	"github.com/tneuqole/habitmap/internal/util"
 )
 
@@ -43,21 +43,16 @@ func main() {
 
 	queries := model.New(db)
 
-	// TODO: other config and use env var for secure
-	sessions := scs.New()
-	sessions.Lifetime = 24 * time.Hour //nolint:mnd
-	sessions.Cookie.Secure = false
-
 	h := &handlers.BaseHandler{
-		Logger:   logger,
-		Queries:  queries,
-		Sessions: sessions,
+		Logger:  logger,
+		Queries: queries,
+		Session: session.New(),
 	}
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(sessions.LoadAndSave)
+	r.Use(h.Session.LoadAndSave)
 
 	r.Get("/health", h.Wrap(handlers.GetHealth))
 
@@ -73,6 +68,8 @@ func main() {
 	r.Post("/users/signup", h.Wrap(userHandler.PostSignup))
 	r.Get("/users/login", h.Wrap(userHandler.GetLoginForm))
 	r.Post("/users/login", h.Wrap(userHandler.PostLogin))
+	r.Post("/users/logout", h.Wrap(userHandler.PostLogout))
+	r.Get("/users/account", h.Wrap(userHandler.GetAccount))
 
 	habitHandler := handlers.NewHabitHandler(h)
 	r.Get("/habits", h.Wrap(habitHandler.GetHabits))

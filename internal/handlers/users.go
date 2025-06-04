@@ -9,6 +9,7 @@ import (
 	"github.com/tneuqole/habitmap/internal/forms"
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/templates/formcomponents"
+	"github.com/tneuqole/habitmap/internal/templates/pages"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,10 +26,12 @@ func NewUserHandler(bh *BaseHandler) *UserHandler {
 }
 
 func (h *UserHandler) GetSignupForm(w http.ResponseWriter, r *http.Request) error {
-	return h.render(w, r, formcomponents.Signup(forms.SignupForm{}))
+	return h.render(w, r, formcomponents.Signup(h.Session.Data(r.Context()), forms.SignupForm{}))
 }
 
 func (h *UserHandler) PostSignup(w http.ResponseWriter, r *http.Request) error {
+	sessionData := h.Session.Data(r.Context())
+
 	var form forms.SignupForm
 	if err := h.bindFormData(r, &form); err != nil {
 		return err
@@ -37,7 +40,7 @@ func (h *UserHandler) PostSignup(w http.ResponseWriter, r *http.Request) error {
 	err := validate.Struct(&form)
 	if err != nil {
 		form.FieldErrors = h.parseValidationErrors(err)
-		return h.render(w, r, formcomponents.Signup(form))
+		return h.render(w, r, formcomponents.Signup(sessionData, form))
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(form.Password), Cost)
@@ -50,24 +53,28 @@ func (h *UserHandler) PostSignup(w http.ResponseWriter, r *http.Request) error {
 		Email:          form.Email,
 		HashedPassword: string(hashedPassword),
 	}
-	_, err = h.Queries.CreateUser(r.Context(), params)
+	userID, err := h.Queries.CreateUser(r.Context(), params)
 	if err != nil {
 		err = h.handleDBError(err)
 		if errors.Is(err, apperror.ErrDuplicateEmail) {
 			form.AddFieldError("Email", apperror.ErrDuplicateEmail.Message)
-			return h.render(w, r, formcomponents.Signup(form))
+			return h.render(w, r, formcomponents.Signup(sessionData, form))
 		}
 	}
+
+	h.Session.SetUserID(r.Context(), userID)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return nil
 }
 
 func (h *UserHandler) GetLoginForm(w http.ResponseWriter, r *http.Request) error {
-	return h.render(w, r, formcomponents.Login(forms.LoginForm{}))
+	return h.render(w, r, formcomponents.Login(h.Session.Data(r.Context()), forms.LoginForm{}))
 }
 
 func (h *UserHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
+	sessionData := h.Session.Data(r.Context())
+
 	var form forms.LoginForm
 	if err := h.bindFormData(r, &form); err != nil {
 		return err
@@ -76,14 +83,14 @@ func (h *UserHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
 	err := validate.Struct(&form)
 	if err != nil {
 		form.FieldErrors = h.parseValidationErrors(err)
-		return h.render(w, r, formcomponents.Login(form))
+		return h.render(w, r, formcomponents.Login(sessionData, form))
 	}
 
 	user, err := h.Queries.GetUser(r.Context(), form.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			form.AddGenericError(apperror.ErrInvalidCredentials.Message)
-			return h.render(w, r, formcomponents.Login(form))
+			return h.render(w, r, formcomponents.Login(sessionData, form))
 		}
 
 		return err
@@ -93,18 +100,40 @@ func (h *UserHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			form.AddGenericError(apperror.ErrInvalidCredentials.Message)
-			return h.render(w, r, formcomponents.Login(form))
+			return h.render(w, r, formcomponents.Login(sessionData, form))
 		}
 		return err
 	}
 
-	err = h.Sessions.RenewToken(r.Context())
+	err = h.Session.RenewToken(r.Context())
 	if err != nil {
 		return err
 	}
 
-	h.Sessions.Put(r.Context(), "authenticatedUserID", user.ID)
+	h.Session.SetUserID(r.Context(), user.ID)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return nil
+}
+
+func (h *UserHandler) PostLogout(w http.ResponseWriter, r *http.Request) error {
+	h.Session.RemoveUserID(r.Context())
+	h.Session.SetFlash(r.Context(), "You've been logged out.")
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+	return nil
+}
+
+func (h *UserHandler) GetAccount(w http.ResponseWriter, r *http.Request) error {
+	sessionData := h.Session.Data(r.Context())
+	if !sessionData.IsAuthenticated {
+		return h.render(w, r, pages.Error404(sessionData))
+	}
+
+	user, err := h.Queries.GetUserByID(r.Context(), *sessionData.UserID)
+	if err != nil {
+		return h.handleDBError(err)
+	}
+
+	return h.render(w, r, pages.Account(sessionData, user))
 }

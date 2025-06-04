@@ -27,7 +27,7 @@ func (h *HabitHandler) GetHabits(w http.ResponseWriter, r *http.Request) error {
 		return h.handleDBError(err)
 	}
 
-	return h.render(w, r, pages.Habits(habits))
+	return h.render(w, r, pages.Habits(h.Session.Data(r.Context()), habits))
 }
 
 type getHabitParams struct {
@@ -70,7 +70,7 @@ func (h *HabitHandler) GetHabit(w http.ResponseWriter, r *http.Request) error {
 
 	months := h.groupEntriesByMonth(habitID, entries, monthKeys)
 
-	return h.render(w, r, pages.Habit(habit, params.View, params.Date, monthKeys, months))
+	return h.render(w, r, pages.Habit(h.Session.Data(r.Context()), habit, params.View, params.Date, monthKeys, months))
 }
 
 func (h *HabitHandler) DeleteHabit(w http.ResponseWriter, r *http.Request) error {
@@ -91,7 +91,7 @@ func (h *HabitHandler) DeleteHabit(w http.ResponseWriter, r *http.Request) error
 }
 
 func (h *HabitHandler) GetCreateHabitForm(w http.ResponseWriter, r *http.Request) error {
-	return h.render(w, r, formcomponents.CreateHabit(forms.CreateHabitForm{}))
+	return h.render(w, r, formcomponents.CreateHabit(h.Session.Data(r.Context()), forms.CreateHabitForm{}))
 }
 
 func (h *HabitHandler) PostHabit(w http.ResponseWriter, r *http.Request) error {
@@ -103,7 +103,7 @@ func (h *HabitHandler) PostHabit(w http.ResponseWriter, r *http.Request) error {
 	err := validate.Struct(&form)
 	if err != nil {
 		form.FieldErrors = h.parseValidationErrors(err)
-		return h.render(w, r, formcomponents.CreateHabit(form))
+		return h.render(w, r, formcomponents.CreateHabit(h.Session.Data(r.Context()), form))
 	}
 
 	habit, err := h.Queries.CreateHabit(r.Context(), form.Name)
@@ -120,7 +120,7 @@ func (h *HabitHandler) GetUpdateHabitForm(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	return h.render(w, r, formcomponents.UpdateHabit(habitID, forms.CreateHabitForm{}))
+	return h.render(w, r, formcomponents.UpdateHabit(h.Session.Data(r.Context()), habitID, forms.CreateHabitForm{}))
 }
 
 func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) error {
@@ -137,7 +137,7 @@ func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) e
 	err = validate.Struct(&form)
 	if err != nil {
 		form.FieldErrors = h.parseValidationErrors(err)
-		return h.render(w, r, formcomponents.UpdateHabit(habitID, form))
+		return h.render(w, r, formcomponents.UpdateHabit(h.Session.Data(r.Context()), habitID, form))
 	}
 
 	habit, err := h.Queries.UpdateHabit(r.Context(), model.UpdateHabitParams{

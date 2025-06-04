@@ -13,6 +13,14 @@ SELECT
 FROM users
 WHERE email = ?;
 
+-- name: GetUserByID :one
+SELECT
+    name,
+    email,
+    created_at
+FROM users
+WHERE id = ?;
+
 -- name: CreateHabit :one
 INSERT INTO habits (name, created_at)
 VALUES (?, unixepoch())

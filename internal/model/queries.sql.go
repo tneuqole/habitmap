@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	"time"
 )
 
 const createEntry = `-- name: CreateEntry :one
@@ -232,6 +233,28 @@ func (q *Queries) GetUser(ctx context.Context, email string) (GetUserRow, error)
 		&i.Email,
 		&i.HashedPassword,
 	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT
+    name,
+    email,
+    created_at
+FROM users
+WHERE id = ?
+`
+
+type GetUserByIDRow struct {
+	Name      string
+	Email     string
+	CreatedAt time.Time
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, id int64) (GetUserByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserByID, id)
+	var i GetUserByIDRow
+	err := row.Scan(&i.Name, &i.Email, &i.CreatedAt)
 	return i, err
 }
 

@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/form/v4"
 	"github.com/go-playground/validator/v10"
@@ -20,6 +19,7 @@ import (
 	"github.com/tneuqole/habitmap/internal/apperror"
 	"github.com/tneuqole/habitmap/internal/ctxutil"
 	"github.com/tneuqole/habitmap/internal/model"
+	"github.com/tneuqole/habitmap/internal/session"
 	"github.com/tneuqole/habitmap/internal/util"
 )
 
@@ -29,9 +29,9 @@ const (
 )
 
 type BaseHandler struct {
-	Logger   *slog.Logger
-	Queries  *model.Queries
-	Sessions *scs.SessionManager
+	Logger  *slog.Logger
+	Queries *model.Queries
+	Session *session.Manager
 }
 
 func (h *BaseHandler) render(w http.ResponseWriter, r *http.Request, component templ.Component) error {

@@ -1,18 +1,24 @@
 package components
 
-var linkCss = "text-gray-800 font-semibold text-lg hover:text-blue-600 transition"
+import "github.com/tneuqole/habitmap/internal/session"
 
-templ Nav() {
+var linkCSS = "text-gray-800 font-semibold text-lg hover:text-blue-600 transition"
+
+templ Nav(data session.SessionData) {
 	<nav class="bg-gray-300 shadow">
 		<div class="flex justify-between items-center mx-4 py-2">
 			<div class="inline-flex items-center space-x-4">
 				<div class="flex justify-center items-center w-10 h-10 bg-blue-500 rounded-full text-white text-2xl font-bold">H</div>
-				<a href="/habits" class={ linkCss }>Habits</a>
+				<a href="/habits" class={ linkCSS }>Habits</a>
 			</div>
 			<div class="inline-flex space-x-4">
-				<a href="/users/signup" class={ linkCss }>Signup</a>
-				<a href="/users/login" class={ linkCss }>Login</a>
-				<a hx-post="/users/logout" class={ linkCss }>Logout</a>
+				if data.IsAuthenticated {
+					<a href="/users/account" class={ linkCSS }>Account</a>
+					<a hx-post="/users/logout" hx-target="body" class={ linkCSS + " cursor-pointer" }>Logout</a>
+				} else {
+					<a href="/users/signup" class={ linkCSS }>Signup</a>
+					<a href="/users/login" class={ linkCSS }>Login</a>
+				}
 			</div>
 		</div>
 	</nav>
