@@ -30,15 +30,9 @@ func (h *EntryHandler) PostEntry(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	params := model.CreateEntryParams{EntryDate: form.EntryDate, HabitID: form.HabitID}
-	row, err := h.Queries.CreateEntry(r.Context(), params)
+	entry, err := h.Queries.CreateEntry(r.Context(), params)
 	if err != nil {
 		return h.handleDBError(err)
-	}
-
-	entry := model.Entry{
-		ID:        row.ID,
-		EntryDate: row.EntryDate,
-		HabitID:   row.HabitID,
 	}
 
 	return h.render(w, r, components.Entry(entry))
@@ -50,14 +44,11 @@ func (h *EntryHandler) DeleteEntry(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	row, err := h.Queries.DeleteEntry(r.Context(), entryID)
+	entry, err := h.Queries.DeleteEntry(r.Context(), entryID)
 	if err != nil {
 		return h.handleDBError(err)
 	}
+	entry.ID = 0
 
-	entry := model.Entry{
-		EntryDate: row.EntryDate,
-		HabitID:   row.HabitID,
-	}
 	return h.render(w, r, components.Entry(entry))
 }

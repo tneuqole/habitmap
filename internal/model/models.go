@@ -19,8 +19,10 @@ type Entry struct {
 
 type Habit struct {
 	ID        int64
+	UserID    int64
 	Name      string
 	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type User struct {
@@ -29,4 +31,5 @@ type User struct {
 	Email          string
 	HashedPassword string
 	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }

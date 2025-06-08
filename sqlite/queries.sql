@@ -27,22 +27,17 @@ VALUES (?)
 RETURNING id;
 
 -- name: GetHabit :one
-SELECT
-    id,
-    name,
-    created_at
-FROM habits
+SELECT * FROM habits
 WHERE id = ? LIMIT 1;
 
 -- name: GetHabits :many
-SELECT
-    id,
-    name,
-    created_at
-FROM habits;
+SELECT * FROM habits;
 
 -- name: UpdateHabit :exec
-UPDATE habits SET name = ?
+UPDATE habits
+SET
+    name = ?,
+    updated_at = CURRENT_TIMESTAMP
 WHERE id = ?;
 
 -- name: DeleteHabit :exec
@@ -53,32 +48,19 @@ WHERE id = ?;
 INSERT INTO entries
 (entry_date, habit_id)
 VALUES (?, ?)
-RETURNING
-    id,
-    entry_date,
-    habit_id;
+RETURNING *;
 
 -- name: GetEntriesForHabitByYear :many
-SELECT
-    id,
-    entry_date,
-    habit_id
-FROM entries
+SELECT * FROM entries
 WHERE habit_id = ? AND year = ?
 ORDER BY entry_date ASC;
 
 -- name: GetEntriesForHabitByYearAndMonth :many
-SELECT
-    id,
-    entry_date,
-    habit_id
-FROM entries
+SELECT * FROM entries
 WHERE habit_id = ? AND year_month = ?
 ORDER BY entry_date ASC;
 
 -- name: DeleteEntry :one
 DELETE FROM entries
 WHERE id = ?
-RETURNING
-    entry_date,
-    habit_id;
+RETURNING *;
