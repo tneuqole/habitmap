@@ -205,18 +205,45 @@ func (h *BaseHandler) bindAndValidateGetHabitParams(w http.ResponseWriter, r *ht
 	return r, &params, nil
 }
 
+// TODO: use generics if i'm not lazy
 func (h *HabitHandler) fetchEntriesForView(ctx context.Context, habitID int64, view, date string) ([]model.Entry, error) {
 	switch view {
 	case "year":
-		return h.Queries.GetEntriesForHabitByYear(ctx, model.GetEntriesForHabitByYearParams{
-			HabitID:   habitID,
-			EntryDate: date[:4], // YYYY
+		rows, err := h.Queries.GetEntriesForHabitByYear(ctx, model.GetEntriesForHabitByYearParams{
+			HabitID: habitID,
+			Year:    model.ToNullString(date[:4]), // YYYY
 		})
+		if err != nil {
+			return nil, err
+		}
+		entries := make([]model.Entry, 0, len(rows))
+		for _, row := range rows {
+			entries = append(entries, model.Entry{
+				ID:        row.ID,
+				EntryDate: row.EntryDate,
+				HabitID:   row.HabitID,
+			})
+		}
+		return entries, nil
+
 	case "month":
-		return h.Queries.GetEntriesForHabitByYearAndMonth(ctx, model.GetEntriesForHabitByYearAndMonthParams{
+		rows, err := h.Queries.GetEntriesForHabitByYearAndMonth(ctx, model.GetEntriesForHabitByYearAndMonthParams{
 			HabitID:   habitID,
-			EntryDate: date, // YYYY-MM
+			YearMonth: model.ToNullString(date), // YYYY-MM
 		})
+		if err != nil {
+			return nil, err
+		}
+		entries := make([]model.Entry, 0, len(rows))
+		for _, row := range rows {
+			entries = append(entries, model.Entry{
+				ID:        row.ID,
+				EntryDate: row.EntryDate,
+				HabitID:   row.HabitID,
+			})
+		}
+		return entries, nil
+
 	default:
 		return nil, apperror.New(http.StatusBadRequest, "view is invalid")
 	}

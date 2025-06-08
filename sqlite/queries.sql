@@ -22,9 +22,9 @@ FROM users
 WHERE id = ?;
 
 -- name: CreateHabit :one
-INSERT INTO habits (name, created_at)
-VALUES (?, unixepoch())
-RETURNING *;
+INSERT INTO habits (name)
+VALUES (?)
+RETURNING id;
 
 -- name: GetHabit :one
 SELECT
@@ -41,10 +41,9 @@ SELECT
     created_at
 FROM habits;
 
--- name: UpdateHabit :one
+-- name: UpdateHabit :exec
 UPDATE habits SET name = ?
-WHERE id = ?
-RETURNING *;
+WHERE id = ?;
 
 -- name: DeleteHabit :exec
 DELETE FROM habits
@@ -54,7 +53,10 @@ WHERE id = ?;
 INSERT INTO entries
 (entry_date, habit_id)
 VALUES (?, ?)
-RETURNING *;
+RETURNING
+    id,
+    entry_date,
+    habit_id;
 
 -- name: GetEntriesForHabitByYear :many
 SELECT
@@ -62,7 +64,7 @@ SELECT
     entry_date,
     habit_id
 FROM entries
-WHERE habit_id = ? AND strftime('%Y', entry_date) = ?
+WHERE habit_id = ? AND year = ?
 ORDER BY entry_date ASC;
 
 -- name: GetEntriesForHabitByYearAndMonth :many
@@ -71,9 +73,12 @@ SELECT
     entry_date,
     habit_id
 FROM entries
-WHERE habit_id = ? AND strftime('%Y-%m', entry_date) = ?
+WHERE habit_id = ? AND year_month = ?
 ORDER BY entry_date ASC;
 
 -- name: DeleteEntry :one
 DELETE FROM entries
-WHERE id = ? RETURNING *;
+WHERE id = ?
+RETURNING
+    entry_date,
+    habit_id;

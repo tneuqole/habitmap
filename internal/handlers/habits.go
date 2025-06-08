@@ -106,12 +106,12 @@ func (h *HabitHandler) PostHabit(w http.ResponseWriter, r *http.Request) error {
 		return h.render(w, r, formcomponents.CreateHabit(h.Session.Data(r.Context()), form))
 	}
 
-	habit, err := h.Queries.CreateHabit(r.Context(), form.Name)
+	habitID, err := h.Queries.CreateHabit(r.Context(), form.Name)
 	if err != nil {
 		return h.handleDBError(err)
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/habits/%d", habit.ID), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/habits/%d", habitID), http.StatusSeeOther)
 	return nil
 }
 
@@ -140,7 +140,7 @@ func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) e
 		return h.render(w, r, formcomponents.UpdateHabit(h.Session.Data(r.Context()), habitID, form))
 	}
 
-	habit, err := h.Queries.UpdateHabit(r.Context(), model.UpdateHabitParams{
+	err = h.Queries.UpdateHabit(r.Context(), model.UpdateHabitParams{
 		Name: form.Name,
 		ID:   habitID,
 	})
@@ -148,6 +148,6 @@ func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) e
 		return h.handleDBError(err)
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/habits/%d", habit.ID), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/habits/%d", habitID), http.StatusSeeOther)
 	return nil
 }

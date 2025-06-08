@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -14,7 +15,10 @@ const createEntry = `-- name: CreateEntry :one
 INSERT INTO entries
 (entry_date, habit_id)
 VALUES (?, ?)
-RETURNING id, entry_date, habit_id
+RETURNING
+    id,
+    entry_date,
+    habit_id
 `
 
 type CreateEntryParams struct {
@@ -22,24 +26,30 @@ type CreateEntryParams struct {
 	HabitID   int64
 }
 
-func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error) {
+type CreateEntryRow struct {
+	ID        int64
+	EntryDate string
+	HabitID   int64
+}
+
+func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (CreateEntryRow, error) {
 	row := q.db.QueryRowContext(ctx, createEntry, arg.EntryDate, arg.HabitID)
-	var i Entry
+	var i CreateEntryRow
 	err := row.Scan(&i.ID, &i.EntryDate, &i.HabitID)
 	return i, err
 }
 
 const createHabit = `-- name: CreateHabit :one
-INSERT INTO habits (name, created_at)
-VALUES (?, unixepoch())
-RETURNING id, name, created_at
+INSERT INTO habits (name)
+VALUES (?)
+RETURNING id
 `
 
-func (q *Queries) CreateHabit(ctx context.Context, name string) (Habit, error) {
+func (q *Queries) CreateHabit(ctx context.Context, name string) (int64, error) {
 	row := q.db.QueryRowContext(ctx, createHabit, name)
-	var i Habit
-	err := row.Scan(&i.ID, &i.Name, &i.CreatedAt)
-	return i, err
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const createUser = `-- name: CreateUser :one
@@ -64,13 +74,21 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, 
 
 const deleteEntry = `-- name: DeleteEntry :one
 DELETE FROM entries
-WHERE id = ? RETURNING id, entry_date, habit_id
+WHERE id = ?
+RETURNING
+    entry_date,
+    habit_id
 `
 
-func (q *Queries) DeleteEntry(ctx context.Context, id int64) (Entry, error) {
+type DeleteEntryRow struct {
+	EntryDate string
+	HabitID   int64
+}
+
+func (q *Queries) DeleteEntry(ctx context.Context, id int64) (DeleteEntryRow, error) {
 	row := q.db.QueryRowContext(ctx, deleteEntry, id)
-	var i Entry
-	err := row.Scan(&i.ID, &i.EntryDate, &i.HabitID)
+	var i DeleteEntryRow
+	err := row.Scan(&i.EntryDate, &i.HabitID)
 	return i, err
 }
 
@@ -90,24 +108,30 @@ SELECT
     entry_date,
     habit_id
 FROM entries
-WHERE habit_id = ? AND strftime('%Y', entry_date) = ?
+WHERE habit_id = ? AND year = ?
 ORDER BY entry_date ASC
 `
 
 type GetEntriesForHabitByYearParams struct {
-	HabitID   int64
-	EntryDate string
+	HabitID int64
+	Year    sql.NullString
 }
 
-func (q *Queries) GetEntriesForHabitByYear(ctx context.Context, arg GetEntriesForHabitByYearParams) ([]Entry, error) {
-	rows, err := q.db.QueryContext(ctx, getEntriesForHabitByYear, arg.HabitID, arg.EntryDate)
+type GetEntriesForHabitByYearRow struct {
+	ID        int64
+	EntryDate string
+	HabitID   int64
+}
+
+func (q *Queries) GetEntriesForHabitByYear(ctx context.Context, arg GetEntriesForHabitByYearParams) ([]GetEntriesForHabitByYearRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEntriesForHabitByYear, arg.HabitID, arg.Year)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Entry
+	var items []GetEntriesForHabitByYearRow
 	for rows.Next() {
-		var i Entry
+		var i GetEntriesForHabitByYearRow
 		if err := rows.Scan(&i.ID, &i.EntryDate, &i.HabitID); err != nil {
 			return nil, err
 		}
@@ -128,24 +152,30 @@ SELECT
     entry_date,
     habit_id
 FROM entries
-WHERE habit_id = ? AND strftime('%Y-%m', entry_date) = ?
+WHERE habit_id = ? AND year_month = ?
 ORDER BY entry_date ASC
 `
 
 type GetEntriesForHabitByYearAndMonthParams struct {
 	HabitID   int64
-	EntryDate string
+	YearMonth sql.NullString
 }
 
-func (q *Queries) GetEntriesForHabitByYearAndMonth(ctx context.Context, arg GetEntriesForHabitByYearAndMonthParams) ([]Entry, error) {
-	rows, err := q.db.QueryContext(ctx, getEntriesForHabitByYearAndMonth, arg.HabitID, arg.EntryDate)
+type GetEntriesForHabitByYearAndMonthRow struct {
+	ID        int64
+	EntryDate string
+	HabitID   int64
+}
+
+func (q *Queries) GetEntriesForHabitByYearAndMonth(ctx context.Context, arg GetEntriesForHabitByYearAndMonthParams) ([]GetEntriesForHabitByYearAndMonthRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEntriesForHabitByYearAndMonth, arg.HabitID, arg.YearMonth)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Entry
+	var items []GetEntriesForHabitByYearAndMonthRow
 	for rows.Next() {
-		var i Entry
+		var i GetEntriesForHabitByYearAndMonthRow
 		if err := rows.Scan(&i.ID, &i.EntryDate, &i.HabitID); err != nil {
 			return nil, err
 		}
@@ -258,10 +288,9 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (GetUserByIDRow, er
 	return i, err
 }
 
-const updateHabit = `-- name: UpdateHabit :one
+const updateHabit = `-- name: UpdateHabit :exec
 UPDATE habits SET name = ?
 WHERE id = ?
-RETURNING id, name, created_at
 `
 
 type UpdateHabitParams struct {
@@ -269,9 +298,7 @@ type UpdateHabitParams struct {
 	ID   int64
 }
 
-func (q *Queries) UpdateHabit(ctx context.Context, arg UpdateHabitParams) (Habit, error) {
-	row := q.db.QueryRowContext(ctx, updateHabit, arg.Name, arg.ID)
-	var i Habit
-	err := row.Scan(&i.ID, &i.Name, &i.CreatedAt)
-	return i, err
+func (q *Queries) UpdateHabit(ctx context.Context, arg UpdateHabitParams) error {
+	_, err := q.db.ExecContext(ctx, updateHabit, arg.Name, arg.ID)
+	return err
 }

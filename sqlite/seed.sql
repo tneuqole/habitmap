@@ -1,13 +1,13 @@
 -- Insert sample habits
-INSERT INTO habits (name, created_at) VALUES
-('Exercise', strftime('%s', 'now')),
-('Read', strftime('%s', 'now')),
-('Meditate', strftime('%s', 'now')),
-('Journal', strftime('%s', 'now')),
-('Drink Water', strftime('%s', 'now')),
-('Sleep Early', strftime('%s', 'now')),
-('Practice Coding', strftime('%s', 'now')),
-('Walk Outside', strftime('%s', 'now'));
+INSERT INTO habits (name) VALUES
+('Exercise'),
+('Read'),
+('Meditate'),
+('Journal'),
+('Drink Water'),
+('Sleep Early'),
+('Practice Coding'),
+('Walk Outside');
 
 -- Generate habit entries for 2 years (~10 per month per habit)
 WITH RECURSIVE date_series AS (
