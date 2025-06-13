@@ -49,41 +49,64 @@ func main() {
 		Session: session.New(),
 	}
 
+	// TODO: read chi docs
 	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(h.Session.LoadAndSave)
+
+	// TODO: custom timeout middleware with error page
 
 	r.Get("/health", h.Wrap(handlers.GetHealth))
 
 	r.Handle("/public/*", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
 
-	// TODO: implement home page
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/habits", http.StatusFound)
-	})
+	r.Get("/", h.Wrap(h.GetHome))
 
 	userHandler := handlers.NewUserHandler(h)
-	r.Get("/users/signup", h.Wrap(userHandler.GetSignupForm))
-	r.Post("/users/signup", h.Wrap(userHandler.PostSignup))
-	r.Get("/users/login", h.Wrap(userHandler.GetLoginForm))
-	r.Post("/users/login", h.Wrap(userHandler.PostLogin))
-	r.Post("/users/logout", h.Wrap(userHandler.PostLogout))
-	r.Get("/users/account", h.Wrap(userHandler.GetAccount))
+	r.Route("/users", func(r chi.Router) {
+		// public routes
+		r.Get("/signup", h.Wrap(userHandler.GetSignupForm))
+		r.Post("/signup", h.Wrap(userHandler.PostSignup))
+		r.Get("/login", h.Wrap(userHandler.GetLoginForm))
+		r.Post("/login", h.Wrap(userHandler.PostLogin))
+
+		// protected routes
+		r.Group(func(r chi.Router) {
+			r.Use(h.RequireAuth)
+
+			r.Get("/account", h.Wrap(userHandler.GetAccount))
+			r.Post("/logout", h.Wrap(userHandler.PostLogout))
+		})
+	})
 
 	habitHandler := handlers.NewHabitHandler(h)
-	r.Get("/habits", h.Wrap(habitHandler.GetHabits))
-	r.Get("/habits/{id}", h.Wrap(habitHandler.GetHabit))
-	r.Delete("/habits/{id}", h.Wrap(habitHandler.DeleteHabit))
-	r.Get("/habits/new", h.Wrap(habitHandler.GetCreateHabitForm))
-	r.Post("/habits/new", h.Wrap(habitHandler.PostHabit))
-	r.Get("/habits/{id}/edit", h.Wrap(habitHandler.GetUpdateHabitForm))
-	r.Post("/habits/{id}/edit", h.Wrap(habitHandler.PostUpdateHabit))
+	r.Route("/habits", func(r chi.Router) {
+		r.Use(h.RequireAuth)
+
+		r.Get("/", h.Wrap(habitHandler.GetHabits))
+		r.Get("/new", h.Wrap(habitHandler.GetCreateHabitForm))
+		r.Post("/new", h.Wrap(habitHandler.PostHabit))
+
+		r.Route("/{id}", func(r chi.Router) {
+			r.Get("/", h.Wrap(habitHandler.GetHabit))
+			r.Get("/edit", h.Wrap(habitHandler.GetUpdateHabitForm))
+			r.Post("/edit", h.Wrap(habitHandler.PostUpdateHabit))
+			r.Delete("/", h.Wrap(habitHandler.DeleteHabit))
+		})
+	})
 
 	entryHandler := handlers.NewEntryHandler(h)
-	r.Post("/entries", h.Wrap(entryHandler.PostEntry))
-	r.Delete("/entries/{id}", h.Wrap(entryHandler.DeleteEntry))
+	r.Route("/entries", func(r chi.Router) {
+		r.Use(h.RequireAuth)
 
+		r.Post("/new", h.Wrap(entryHandler.PostEntry))
+		r.Delete("/{id}", h.Wrap(entryHandler.DeleteEntry))
+	})
+
+	// TODO: https
 	logger.Info("Running on http://localhost:4000")
 	srv := &http.Server{
 		Addr:         ":4000",

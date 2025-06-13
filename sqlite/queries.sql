@@ -22,27 +22,29 @@ FROM users
 WHERE id = ?;
 
 -- name: CreateHabit :one
-INSERT INTO habits (name)
-VALUES (?)
+INSERT INTO habits (name, user_id)
+VALUES (?, ?)
 RETURNING id;
 
 -- name: GetHabit :one
 SELECT * FROM habits
-WHERE id = ? LIMIT 1;
+WHERE id = ? AND user_id = ?
+LIMIT 1;
 
 -- name: GetHabits :many
-SELECT * FROM habits;
+SELECT * FROM habits
+WHERE user_id = ?;
 
 -- name: UpdateHabit :exec
 UPDATE habits
 SET
     name = ?,
     updated_at = CURRENT_TIMESTAMP
-WHERE id = ?;
+WHERE id = ? AND user_id = ?;
 
 -- name: DeleteHabit :exec
 DELETE FROM habits
-WHERE id = ?;
+WHERE id = ? AND user_id = ?;
 
 -- name: CreateEntry :one
 INSERT INTO entries

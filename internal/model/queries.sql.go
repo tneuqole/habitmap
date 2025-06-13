@@ -37,13 +37,18 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry
 }
 
 const createHabit = `-- name: CreateHabit :one
-INSERT INTO habits (name)
-VALUES (?)
+INSERT INTO habits (name, user_id)
+VALUES (?, ?)
 RETURNING id
 `
 
-func (q *Queries) CreateHabit(ctx context.Context, name string) (int64, error) {
-	row := q.db.QueryRowContext(ctx, createHabit, name)
+type CreateHabitParams struct {
+	Name   string
+	UserID int64
+}
+
+func (q *Queries) CreateHabit(ctx context.Context, arg CreateHabitParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, createHabit, arg.Name, arg.UserID)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
@@ -90,11 +95,16 @@ func (q *Queries) DeleteEntry(ctx context.Context, id int64) (Entry, error) {
 
 const deleteHabit = `-- name: DeleteHabit :exec
 DELETE FROM habits
-WHERE id = ?
+WHERE id = ? AND user_id = ?
 `
 
-func (q *Queries) DeleteHabit(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteHabit, id)
+type DeleteHabitParams struct {
+	ID     int64
+	UserID int64
+}
+
+func (q *Queries) DeleteHabit(ctx context.Context, arg DeleteHabitParams) error {
+	_, err := q.db.ExecContext(ctx, deleteHabit, arg.ID, arg.UserID)
 	return err
 }
 
@@ -180,11 +190,17 @@ func (q *Queries) GetEntriesForHabitByYearAndMonth(ctx context.Context, arg GetE
 
 const getHabit = `-- name: GetHabit :one
 SELECT id, user_id, name, created_at, updated_at FROM habits
-WHERE id = ? LIMIT 1
+WHERE id = ? AND user_id = ?
+LIMIT 1
 `
 
-func (q *Queries) GetHabit(ctx context.Context, id int64) (Habit, error) {
-	row := q.db.QueryRowContext(ctx, getHabit, id)
+type GetHabitParams struct {
+	ID     int64
+	UserID int64
+}
+
+func (q *Queries) GetHabit(ctx context.Context, arg GetHabitParams) (Habit, error) {
+	row := q.db.QueryRowContext(ctx, getHabit, arg.ID, arg.UserID)
 	var i Habit
 	err := row.Scan(
 		&i.ID,
@@ -198,10 +214,11 @@ func (q *Queries) GetHabit(ctx context.Context, id int64) (Habit, error) {
 
 const getHabits = `-- name: GetHabits :many
 SELECT id, user_id, name, created_at, updated_at FROM habits
+WHERE user_id = ?
 `
 
-func (q *Queries) GetHabits(ctx context.Context) ([]Habit, error) {
-	rows, err := q.db.QueryContext(ctx, getHabits)
+func (q *Queries) GetHabits(ctx context.Context, userID int64) ([]Habit, error) {
+	rows, err := q.db.QueryContext(ctx, getHabits, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -285,15 +302,16 @@ UPDATE habits
 SET
     name = ?,
     updated_at = CURRENT_TIMESTAMP
-WHERE id = ?
+WHERE id = ? AND user_id = ?
 `
 
 type UpdateHabitParams struct {
-	Name string
-	ID   int64
+	Name   string
+	ID     int64
+	UserID int64
 }
 
 func (q *Queries) UpdateHabit(ctx context.Context, arg UpdateHabitParams) error {
-	_, err := q.db.ExecContext(ctx, updateHabit, arg.Name, arg.ID)
+	_, err := q.db.ExecContext(ctx, updateHabit, arg.Name, arg.ID, arg.UserID)
 	return err
 }

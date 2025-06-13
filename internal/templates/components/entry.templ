@@ -14,7 +14,7 @@ templ Entry(entry model.Entry) {
 		<td
 			class={ tdCSS + " bg-slate-100 hover:bg-red-200" }
 			title={ entry.EntryDate[8:] }
-			hx-post="/entries"
+			hx-post="/entries/new"
 			hx-trigger="click"
 			hx-swap="outerHTML"
 			hx-include="this"

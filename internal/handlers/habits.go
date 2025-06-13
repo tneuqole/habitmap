@@ -22,7 +22,8 @@ func NewHabitHandler(bh *BaseHandler) *HabitHandler {
 }
 
 func (h *HabitHandler) GetHabits(w http.ResponseWriter, r *http.Request) error {
-	habits, err := h.Queries.GetHabits(r.Context())
+	userID := h.Session.GetUserID(r.Context())
+	habits, err := h.Queries.GetHabits(r.Context(), *userID)
 	if err != nil {
 		return h.handleDBError(err)
 	}
@@ -53,7 +54,8 @@ func (h *HabitHandler) GetHabit(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	habit, err := h.Queries.GetHabit(r.Context(), habitID)
+	userID := h.Session.GetUserID(r.Context())
+	habit, err := h.Queries.GetHabit(r.Context(), model.GetHabitParams{ID: habitID, UserID: *userID})
 	if err != nil {
 		return h.handleDBError(err)
 	}
@@ -79,7 +81,8 @@ func (h *HabitHandler) DeleteHabit(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	err = h.Queries.DeleteHabit(r.Context(), habitID)
+	userID := h.Session.GetUserID(r.Context())
+	err = h.Queries.DeleteHabit(r.Context(), model.DeleteHabitParams{ID: habitID, UserID: *userID})
 	if err != nil {
 		return h.handleDBError(err)
 	}
@@ -106,7 +109,8 @@ func (h *HabitHandler) PostHabit(w http.ResponseWriter, r *http.Request) error {
 		return h.render(w, r, formcomponents.CreateHabit(h.Session.Data(r.Context()), form))
 	}
 
-	habitID, err := h.Queries.CreateHabit(r.Context(), form.Name)
+	userID := h.Session.GetUserID(r.Context())
+	habitID, err := h.Queries.CreateHabit(r.Context(), model.CreateHabitParams{Name: form.Name, UserID: *userID})
 	if err != nil {
 		return h.handleDBError(err)
 	}
@@ -140,9 +144,11 @@ func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) e
 		return h.render(w, r, formcomponents.UpdateHabit(h.Session.Data(r.Context()), habitID, form))
 	}
 
+	userID := h.Session.GetUserID(r.Context())
 	err = h.Queries.UpdateHabit(r.Context(), model.UpdateHabitParams{
-		Name: form.Name,
-		ID:   habitID,
+		Name:   form.Name,
+		ID:     habitID,
+		UserID: *userID,
 	})
 	if err != nil {
 		return h.handleDBError(err)
