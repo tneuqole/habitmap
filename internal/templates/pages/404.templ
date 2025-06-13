@@ -1,0 +1,19 @@
+package pages
+
+import (
+	"github.com/tneuqole/habitmap/internal/session"
+	"github.com/tneuqole/habitmap/internal/templates/layouts"
+)
+
+templ Error404(data session.SessionData) {
+	@layouts.Base(data, "Not Found") {
+		<div class="flex flex-col items-center justify-center text-center py-8 px-4">
+			<p class="mt-2 text-base text-gray-600">Sorry, the page you’re looking for doesn’t exist.</p>
+			<div class="mt-4">
+				<a href="/" class="text-base font-medium text-blue-600 hover:text-blue-500">
+					Go back home &rarr;
+				</a>
+			</div>
+		</div>
+	}
+}

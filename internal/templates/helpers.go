@@ -10,6 +10,12 @@ type HabitFormData struct {
 	Errors map[string]string
 }
 
+type SignupFormData struct {
+	Name   string
+	Email  string
+	Errors map[string]string
+}
+
 func UpdateDate(date, view string, inc int) string {
 	t, err := time.Parse("2006-01", date)
 	if err != nil {

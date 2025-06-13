@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -18,6 +19,7 @@ import (
 	"github.com/tneuqole/habitmap/internal/apperror"
 	"github.com/tneuqole/habitmap/internal/ctxutil"
 	"github.com/tneuqole/habitmap/internal/model"
+	"github.com/tneuqole/habitmap/internal/session"
 	"github.com/tneuqole/habitmap/internal/util"
 )
 
@@ -29,6 +31,7 @@ const (
 type BaseHandler struct {
 	Logger  *slog.Logger
 	Queries *model.Queries
+	Session *session.Manager
 }
 
 func (h *BaseHandler) render(w http.ResponseWriter, r *http.Request, component templ.Component) error {
@@ -64,6 +67,10 @@ func (h *BaseHandler) handleDBError(err error) error {
 	h.Logger.Error("DATABASE_ERROR", util.ErrorSlog(err))
 	if errors.Is(err, sql.ErrNoRows) {
 		return apperror.New(http.StatusNotFound, "Resource does not exist")
+	}
+
+	if strings.Contains(err.Error(), "UNIQUE constraint failed: users.email") {
+		return apperror.ErrDuplicateEmail
 	}
 
 	return apperror.New(http.StatusInternalServerError, "Error reading from database")
@@ -198,17 +205,18 @@ func (h *BaseHandler) bindAndValidateGetHabitParams(w http.ResponseWriter, r *ht
 	return r, &params, nil
 }
 
+// TODO: use generics if i'm not lazy
 func (h *HabitHandler) fetchEntriesForView(ctx context.Context, habitID int64, view, date string) ([]model.Entry, error) {
 	switch view {
 	case "year":
 		return h.Queries.GetEntriesForHabitByYear(ctx, model.GetEntriesForHabitByYearParams{
-			HabitID:   habitID,
-			EntryDate: date[:4], // YYYY
+			HabitID: habitID,
+			Year:    model.ToNullString(date[:4]), // YYYY
 		})
 	case "month":
 		return h.Queries.GetEntriesForHabitByYearAndMonth(ctx, model.GetEntriesForHabitByYearAndMonthParams{
 			HabitID:   habitID,
-			EntryDate: date, // YYYY-MM
+			YearMonth: model.ToNullString(date), // YYYY-MM
 		})
 	default:
 		return nil, apperror.New(http.StatusBadRequest, "view is invalid")

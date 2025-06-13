@@ -4,14 +4,32 @@
 
 package model
 
+import (
+	"database/sql"
+	"time"
+)
+
 type Entry struct {
 	ID        int64
 	EntryDate string
 	HabitID   int64
+	Year      sql.NullString
+	YearMonth sql.NullString
 }
 
 type Habit struct {
 	ID        int64
+	UserID    int64
 	Name      string
-	CreatedAt int64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type User struct {
+	ID             int64
+	Name           string
+	Email          string
+	HashedPassword string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }

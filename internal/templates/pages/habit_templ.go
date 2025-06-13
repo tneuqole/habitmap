@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"fmt"
 	"github.com/tneuqole/habitmap/internal/model"
+	"github.com/tneuqole/habitmap/internal/session"
 	"github.com/tneuqole/habitmap/internal/templates"
 	"github.com/tneuqole/habitmap/internal/templates/components"
 	"github.com/tneuqole/habitmap/internal/templates/layouts"
@@ -22,7 +23,7 @@ var (
 	viewNotSelectedCSS = "w-1/2 py-1 font-bold text-blue-600 text-center transition hover:bg-blue-700 hover:text-white"
 )
 
-func Habit(habit model.Habit, view, date string, months []string, entriesForMonths map[string][][]model.Entry) templ.Component {
+func Habit(data session.SessionData, habit model.Habit, view, date string, months []string, entriesForMonths map[string][][]model.Entry) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -93,7 +94,7 @@ func Habit(habit model.Habit, view, date string, months []string, entriesForMont
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(habit.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 24, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 25, Col: 76}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -128,7 +129,7 @@ func Habit(habit model.Habit, view, date string, months []string, entriesForMont
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/habits/%d?view=%s&date=%s", habit.ID, view, templates.UpdateDate(date, view, -1)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 29, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 30, Col: 110}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -141,7 +142,7 @@ func Habit(habit model.Habit, view, date string, months []string, entriesForMont
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(templates.FormatDate(date, view))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 35, Col: 68}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 36, Col: 68}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -176,7 +177,7 @@ func Habit(habit model.Habit, view, date string, months []string, entriesForMont
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/habits/%d?view=%s&date=%s", habit.ID, view, templates.UpdateDate(date, view, +1)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 38, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 39, Col: 110}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -223,7 +224,7 @@ func Habit(habit model.Habit, view, date string, months []string, entriesForMont
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/habits/%d?view=%s&date=%s", habit.ID, "year", date))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 62, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 63, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -258,7 +259,7 @@ func Habit(habit model.Habit, view, date string, months []string, entriesForMont
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/habits/%d?view=%s&date=%s", habit.ID, "month", date))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 70, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 71, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -280,7 +281,7 @@ func Habit(habit model.Habit, view, date string, months []string, entriesForMont
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(string(templ.URL(fmt.Sprintf("/habits/%d", habit.ID))))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 115, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/pages/habit.templ`, Line: 116, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -300,7 +301,7 @@ func Habit(habit model.Habit, view, date string, months []string, entriesForMont
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layouts.Base("Habit").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Base(data, "Habit").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

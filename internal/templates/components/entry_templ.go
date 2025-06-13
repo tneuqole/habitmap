@@ -73,7 +73,7 @@ func Entry(entry model.Entry) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-post=\"/entries\" hx-trigger=\"click\" hx-swap=\"outerHTML\" hx-include=\"this\"><input name=\"habitId\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-post=\"/entries/new\" hx-trigger=\"click\" hx-swap=\"outerHTML\" hx-include=\"this\"><input name=\"habitId\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
