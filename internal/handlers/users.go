@@ -13,8 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const Cost = 12
-
 type UserHandler struct {
 	*BaseHandler
 }
@@ -43,7 +41,7 @@ func (h *UserHandler) PostSignup(w http.ResponseWriter, r *http.Request) error {
 		return h.render(w, r, formcomponents.Signup(sessionData, form))
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(form.Password), Cost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(form.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
