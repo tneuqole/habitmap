@@ -10,6 +10,9 @@ formatters:
     # - golines
     # - gofumpt
 linters:
+  exclusions:
+    paths-except:
+      - sqlite/
   default: none
   enable:
     - asasalint # Check for pass []any as any in variadic func(...any)
