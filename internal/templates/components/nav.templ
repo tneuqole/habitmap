@@ -14,7 +14,7 @@ templ Nav(data session.SessionData) {
 			<div class="inline-flex space-x-4">
 				if data.IsAuthenticated {
 					<a href="/users/account" class={ linkCSS }>Account</a>
-					<a hx-post="/users/logout" hx-target="body" class={ linkCSS + " cursor-pointer" }>Logout</a>
+					<a hx-post="/users/logout" hx-target="body" hx-push-url="true" class={ linkCSS + " cursor-pointer" }>Logout</a>
 				} else {
 					<a href="/users/signup" class={ linkCSS }>Signup</a>
 					<a href="/users/login" class={ linkCSS }>Login</a>

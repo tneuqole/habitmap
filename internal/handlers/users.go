@@ -64,7 +64,7 @@ func (h *UserHandler) PostSignup(w http.ResponseWriter, r *http.Request) error {
 
 	h.Session.SetUserID(r.Context(), userID)
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/habits", http.StatusSeeOther)
 	return nil
 }
 
@@ -112,7 +112,7 @@ func (h *UserHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
 
 	h.Session.SetUserID(r.Context(), user.ID)
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/habits", http.StatusSeeOther)
 	return nil
 }
 

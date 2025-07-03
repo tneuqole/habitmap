@@ -1,13 +1,15 @@
--- Insert sample habits
-INSERT INTO habits (name) VALUES
-('Exercise'),
-('Read'),
-('Meditate'),
-('Journal'),
-('Drink Water'),
-('Sleep Early'),
-('Practice Coding'),
-('Walk Outside');
+INSERT INTO users (name, email, hashed_password)
+VALUES ('user', 'user@habitmap.com', '$2a$10$HfCZNLQaTHEz3zGofuodA.CHx2yw5jXFOgAU5bfo8R9AYcz/qOcDW');
+
+INSERT INTO habits (user_id, name) VALUES
+(1, 'Exercise'),
+(1, 'Read'),
+(1, 'Meditate'),
+(1, 'Journal'),
+(1, 'Drink Water'),
+(1, 'Sleep Early'),
+(1, 'Practice Coding'),
+(1, 'Walk Outside');
 
 -- Generate habit entries for 2 years (~10 per month per habit)
 WITH RECURSIVE date_series AS (

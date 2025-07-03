@@ -49,8 +49,12 @@ func (m *Manager) SetFlash(ctx context.Context, msg string) {
 	m.Put(ctx, FlashKey, msg)
 }
 
+// Returns a pointer to the flash message if it exists
+// and removes it from the session.
 func (m *Manager) GetFlash(ctx context.Context) *string {
-	return get[string](m, ctx, FlashKey)
+	flash := get[string](m, ctx, FlashKey)
+	m.Remove(ctx, FlashKey)
+	return flash
 }
 
 type SessionData struct {
