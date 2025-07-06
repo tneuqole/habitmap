@@ -37,7 +37,7 @@ func (h *UserHandler) PostSignup(w http.ResponseWriter, r *http.Request) error {
 
 	err := validate.Struct(&form)
 	if err != nil {
-		form.FieldErrors = h.parseValidationErrors(err)
+		form.FieldErrors = h.parseValidationErrors(r.Context(), err)
 		return h.render(w, r, formcomponents.Signup(sessionData, form))
 	}
 
@@ -53,7 +53,7 @@ func (h *UserHandler) PostSignup(w http.ResponseWriter, r *http.Request) error {
 	}
 	userID, err := h.Queries.CreateUser(r.Context(), params)
 	if err != nil {
-		err = h.handleDBError(err)
+		err = h.handleDBError(r.Context(), err)
 		if errors.Is(err, apperror.ErrDuplicateEmail) {
 			form.AddFieldError("Email", apperror.ErrDuplicateEmail.Message)
 			return h.render(w, r, formcomponents.Signup(sessionData, form))
@@ -80,7 +80,7 @@ func (h *UserHandler) PostLogin(w http.ResponseWriter, r *http.Request) error {
 
 	err := validate.Struct(&form)
 	if err != nil {
-		form.FieldErrors = h.parseValidationErrors(err)
+		form.FieldErrors = h.parseValidationErrors(r.Context(), err)
 		return h.render(w, r, formcomponents.Login(sessionData, form))
 	}
 
@@ -130,7 +130,7 @@ func (h *UserHandler) GetAccount(w http.ResponseWriter, r *http.Request) error {
 
 	user, err := h.Queries.GetUserByID(r.Context(), *sessionData.UserID)
 	if err != nil {
-		return h.handleDBError(err)
+		return h.handleDBError(r.Context(), err)
 	}
 
 	return h.render(w, r, pages.Account(sessionData, user))

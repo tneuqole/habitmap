@@ -8,8 +8,10 @@ templ Nav(data session.SessionData) {
 	<nav class="bg-gray-300 shadow">
 		<div class="flex justify-between items-center mx-4 py-2">
 			<div class="inline-flex items-center space-x-4">
-				<div class="flex justify-center items-center w-10 h-10 bg-blue-500 rounded-full text-white text-2xl font-bold">H</div>
-				<a href="/habits" class={ linkCSS }>Habits</a>
+				<div hx-get="/" hx-trigger="click" hx-target="body" hx-push-url="true" class="flex justify-center items-center w-10 h-10 bg-blue-500 rounded-full text-white text-2xl font-bold cursor-pointer">H</div>
+				if data.IsAuthenticated {
+					<a href="/habits" class={ linkCSS }>Habits</a>
+				}
 			</div>
 			<div class="inline-flex space-x-4">
 				if data.IsAuthenticated {

@@ -11,9 +11,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/tneuqole/habitmap/internal/handlers"
+	"github.com/tneuqole/habitmap/internal/logutil"
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/session"
-	"github.com/tneuqole/habitmap/internal/util"
 )
 
 const (
@@ -28,15 +28,17 @@ func main() {
 		Level: slog.LevelDebug,
 	}))
 
+	slog.SetDefault(logger)
+
 	db, err := sql.Open("sqlite3", "./habitmap.db") // TODO: probably shouldn't expose filename
 	if err != nil {
-		logger.Error("failed to connect to database", util.ErrorSlog(err))
+		logger.Error("failed to connect to database", logutil.ErrorSlog(err))
 		os.Exit(1)
 	}
 
 	defer func() {
 		if err := db.Close(); err != nil {
-			logger.Error("error closing database connection", util.ErrorSlog(err))
+			logger.Error("error closing database connection", logutil.ErrorSlog(err))
 			os.Exit(1)
 		}
 	}()
@@ -44,22 +46,28 @@ func main() {
 	queries := model.New(db)
 
 	h := &handlers.BaseHandler{
-		Logger:  logger,
 		Queries: queries,
 		Session: session.New(),
 	}
 
 	// TODO: read chi docs
 	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+
 	r.Use(h.Session.LoadAndSave)
+
+	// TODO: this middleware should only be used with a reverse proxy.
+	// It should be inserted before LogRequest.
+	r.Use(middleware.RealIP)
+
+	r.Use(h.LogRequest)
+	r.Use(h.SetHeaders)
+	r.Use(middleware.Recoverer)
 
 	// TODO: custom timeout middleware with error page
 
 	r.Get("/health", h.Wrap(handlers.GetHealth))
+
+	r.NotFound(h.Error404)
 
 	r.Handle("/public/*", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
 
@@ -118,6 +126,6 @@ func main() {
 
 	err = srv.ListenAndServe()
 	if err != nil {
-		logger.Error("Error starting http server", util.ErrorSlog(err))
+		logger.Error("Error starting http server", logutil.ErrorSlog(err))
 	}
 }

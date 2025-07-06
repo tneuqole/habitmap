@@ -1,0 +1,16 @@
+package layouts
+
+import "github.com/tneuqole/habitmap/internal/session"
+
+templ Error(data session.SessionData, title, msg string) {
+	@Base(data, title) {
+		<div class="flex flex-col items-center justify-center text-center py-8 px-4">
+			<p class="mt-2 text-base text-gray-600">{ msg }</p>
+			<div class="mt-4">
+				<a href="/" class="text-base font-medium text-blue-600 hover:text-blue-500">
+					Go back home &rarr;
+				</a>
+			</div>
+		</div>
+	}
+}

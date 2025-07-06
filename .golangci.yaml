@@ -167,7 +167,7 @@ linters:
       no-global: default
       attr-only: true
       static-msg: true
-      context: scope
+      context: ""
 issues:
   max-same-issues: 0
   max-issues-per-linter: 0

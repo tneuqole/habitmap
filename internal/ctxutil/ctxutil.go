@@ -2,15 +2,20 @@ package ctxutil
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/tneuqole/habitmap/internal/apperror"
-	"github.com/tneuqole/habitmap/internal/session"
 )
 
 type contextKey string
 
-var AppErrorCtxKey = contextKey("appError")
+const (
+	AppErrorCtxKey  contextKey = "appError"
+	RequestIDCtxKey contextKey = "requestID"
+	LoggerCtxKey    contextKey = "logger"
+	NonceCtxKey     contextKey = "nonce"
+)
 
 func SetAppError(r *http.Request, err apperror.AppError) *http.Request {
 	ctx := r.Context()
@@ -18,33 +23,48 @@ func SetAppError(r *http.Request, err apperror.AppError) *http.Request {
 	return r.WithContext(ctx)
 }
 
-func GetAppError(ctx context.Context) (apperror.AppError, bool) {
-	val, ok := ctx.Value(AppErrorCtxKey).(apperror.AppError)
-	return val, ok
+func GetAppError(ctx context.Context) *apperror.AppError {
+	if v, ok := ctx.Value(AppErrorCtxKey).(apperror.AppError); ok {
+		return &v
+	}
+	return nil
 }
 
-var FlashCtxKey = contextKey("flash")
-
-func SetFlash(r *http.Request, msg string) *http.Request {
+func SetRequestID(r *http.Request, requestID string) *http.Request {
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, FlashCtxKey, msg)
+	ctx = context.WithValue(ctx, RequestIDCtxKey, requestID)
 	return r.WithContext(ctx)
 }
 
-func GetFlash(ctx context.Context) (string, bool) {
-	val, ok := ctx.Value(AppErrorCtxKey).(string)
-	return val, ok
+func GetRequestID(ctx context.Context) string {
+	if v, ok := ctx.Value(RequestIDCtxKey).(string); ok {
+		return v
+	}
+	return ""
 }
 
-var SessionDataCtxKey = contextKey("sessionData")
-
-func SetSessionData(r *http.Request, sessionData session.SessionData) *http.Request {
+func SetLogger(r *http.Request, logger *slog.Logger) *http.Request {
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, SessionDataCtxKey, sessionData)
+	ctx = context.WithValue(ctx, LoggerCtxKey, logger)
 	return r.WithContext(ctx)
 }
 
-func GetSessionData(ctx context.Context) (session.SessionData, bool) {
-	val, ok := ctx.Value(SessionDataCtxKey).(session.SessionData)
-	return val, ok
+func GetLogger(ctx context.Context) *slog.Logger {
+	if v, ok := ctx.Value(RequestIDCtxKey).(*slog.Logger); ok {
+		return v
+	}
+	return slog.Default()
+}
+
+func SetNonce(r *http.Request, nonce string) *http.Request {
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, NonceCtxKey, nonce)
+	return r.WithContext(ctx)
+}
+
+func GetNonce(ctx context.Context) string {
+	if v, ok := ctx.Value(NonceCtxKey).(string); ok {
+		return v
+	}
+	return ""
 }

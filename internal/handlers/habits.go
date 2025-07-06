@@ -25,7 +25,7 @@ func (h *HabitHandler) GetHabits(w http.ResponseWriter, r *http.Request) error {
 	userID := h.Session.GetUserID(r.Context())
 	habits, err := h.Queries.GetHabits(r.Context(), *userID)
 	if err != nil {
-		return h.handleDBError(err)
+		return h.handleDBError(r.Context(), err)
 	}
 
 	return h.render(w, r, pages.Habits(h.Session.Data(r.Context()), habits))
@@ -57,20 +57,20 @@ func (h *HabitHandler) GetHabit(w http.ResponseWriter, r *http.Request) error {
 	userID := h.Session.GetUserID(r.Context())
 	habit, err := h.Queries.GetHabit(r.Context(), model.GetHabitParams{ID: habitID, UserID: *userID})
 	if err != nil {
-		return h.handleDBError(err)
+		return h.handleDBError(r.Context(), err)
 	}
 
 	entries, err := h.fetchEntriesForView(r.Context(), habitID, params.View, params.Date)
 	if err != nil {
-		return h.handleDBError(err)
+		return h.handleDBError(r.Context(), err)
 	}
 
-	monthKeys, err := h.generateMonths(params.View, params.Date)
+	monthKeys, err := h.generateMonths(r.Context(), params.View, params.Date)
 	if err != nil {
 		return err
 	}
 
-	months := h.groupEntriesByMonth(habitID, entries, monthKeys)
+	months := h.groupEntriesByMonth(r.Context(), habitID, entries, monthKeys)
 
 	return h.render(w, r, pages.Habit(h.Session.Data(r.Context()), habit, params.View, params.Date, monthKeys, months))
 }
@@ -84,7 +84,7 @@ func (h *HabitHandler) DeleteHabit(w http.ResponseWriter, r *http.Request) error
 	userID := h.Session.GetUserID(r.Context())
 	err = h.Queries.DeleteHabit(r.Context(), model.DeleteHabitParams{ID: habitID, UserID: *userID})
 	if err != nil {
-		return h.handleDBError(err)
+		return h.handleDBError(r.Context(), err)
 	}
 
 	w.Header().Set("HX-Redirect", "/habits")
@@ -105,14 +105,14 @@ func (h *HabitHandler) PostHabit(w http.ResponseWriter, r *http.Request) error {
 
 	err := validate.Struct(&form)
 	if err != nil {
-		form.FieldErrors = h.parseValidationErrors(err)
+		form.FieldErrors = h.parseValidationErrors(r.Context(), err)
 		return h.render(w, r, formcomponents.CreateHabit(h.Session.Data(r.Context()), form))
 	}
 
 	userID := h.Session.GetUserID(r.Context())
 	habitID, err := h.Queries.CreateHabit(r.Context(), model.CreateHabitParams{Name: form.Name, UserID: *userID})
 	if err != nil {
-		return h.handleDBError(err)
+		return h.handleDBError(r.Context(), err)
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/habits/%d", habitID), http.StatusSeeOther)
@@ -140,7 +140,7 @@ func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) e
 
 	err = validate.Struct(&form)
 	if err != nil {
-		form.FieldErrors = h.parseValidationErrors(err)
+		form.FieldErrors = h.parseValidationErrors(r.Context(), err)
 		return h.render(w, r, formcomponents.UpdateHabit(h.Session.Data(r.Context()), habitID, form))
 	}
 
@@ -151,7 +151,7 @@ func (h *HabitHandler) PostUpdateHabit(w http.ResponseWriter, r *http.Request) e
 		UserID: *userID,
 	})
 	if err != nil {
-		return h.handleDBError(err)
+		return h.handleDBError(r.Context(), err)
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/habits/%d", habitID), http.StatusSeeOther)
