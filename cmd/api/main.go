@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/tneuqole/habitmap/internal/handlers"
 	"github.com/tneuqole/habitmap/internal/logutil"
@@ -55,6 +56,16 @@ func main() {
 
 	r.Use(h.LogRequest)
 	r.Use(h.SetHeaders)
+
+	r.Use(httprate.Limit(
+		10,             //nolint:mnd
+		10*time.Second, //nolint:mnd
+		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
+		httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+			h.RenderErrorPage(w, r, http.StatusTooManyRequests)
+		}),
+	))
+
 	r.Use(h.RecoverPanic)
 
 	// TODO: custom timeout middleware with error page

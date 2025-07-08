@@ -31,7 +31,7 @@ func (h *BaseHandler) Wrap(f HandlerFunc) http.HandlerFunc {
 				statusCode = appErr.StatusCode
 			}
 
-			h.renderErrorPage(w, r, statusCode)
+			h.RenderErrorPage(w, r, statusCode)
 		}
 	}
 }
@@ -152,7 +152,7 @@ func (h *BaseHandler) RecoverPanic(next http.Handler) http.Handler {
 			if err := recover(); err != nil {
 				middleware.PrintPrettyStack(err)
 				w.Header().Set("Connection", "close")
-				h.renderErrorPage(w, r, http.StatusInternalServerError)
+				h.RenderErrorPage(w, r, http.StatusInternalServerError)
 			}
 		}()
 
