@@ -16,12 +16,6 @@ import (
 	"github.com/tneuqole/habitmap/internal/session"
 )
 
-const (
-	readTimeout  = 10
-	writeTimeout = 10
-	idleTimeout  = 120
-)
-
 func main() {
 	// TODO: make log level env var
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -119,9 +113,9 @@ func main() {
 	srv := &http.Server{
 		Addr:         ":4000",
 		Handler:      r,
-		ReadTimeout:  readTimeout * time.Second,
-		WriteTimeout: writeTimeout * time.Second,
-		IdleTimeout:  idleTimeout * time.Second,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,  //nolint:mnd
+		WriteTimeout: 10 * time.Second, //nolint:mnd
 	}
 
 	err = srv.ListenAndServe()
