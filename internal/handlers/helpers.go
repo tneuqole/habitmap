@@ -34,8 +34,6 @@ type BaseHandler struct {
 }
 
 func (h *BaseHandler) render(w http.ResponseWriter, r *http.Request, component templ.Component) error {
-	logger := ctxutil.GetLogger(r.Context())
-	logger.Info("nonce=", slog.String("nonce", ctxutil.GetNonce(r.Context())))
 	return component.Render(r.Context(), w)
 }
 

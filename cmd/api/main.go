@@ -61,7 +61,7 @@ func main() {
 
 	r.Use(h.LogRequest)
 	r.Use(h.SetHeaders)
-	r.Use(middleware.Recoverer)
+	r.Use(h.RecoverPanic)
 
 	// TODO: custom timeout middleware with error page
 

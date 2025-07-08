@@ -59,9 +59,17 @@ func Base(data session.SessionData, title string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`{"inlineScriptNonce":"%s","inlineStyleNonce":"%s"}`, nonce, nonce))
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`{
+					"responseHandling": [
+						{"code":"204", "swap": false},
+						{"code":"[45]..", "swap": true, "error":true},
+						{"code":"...", "swap": true}
+					],
+					"inlineScriptNonce": "%s",
+					"inlineStyleNonce": "%s"
+				}`, nonce, nonce))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layouts/base.templ`, Line: 18, Col: 117}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layouts/base.templ`, Line: 28, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {

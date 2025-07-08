@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
 	"github.com/tneuqole/habitmap/internal/apperror"
 	"github.com/tneuqole/habitmap/internal/ctxutil"
@@ -87,18 +88,14 @@ func (h *BaseHandler) SetHeaders(next http.Handler) http.Handler {
 	})
 }
 
-type CustomResponseWriter struct {
+type customResponseWriter struct {
 	http.ResponseWriter
 	statusCode  int
 	bytes       int
 	wroteHeader bool
 }
 
-func NewCustomResponseWriter(w http.ResponseWriter) *CustomResponseWriter {
-	return &CustomResponseWriter{ResponseWriter: w}
-}
-
-func (w *CustomResponseWriter) WriteHeader(statusCode int) {
+func (w *customResponseWriter) WriteHeader(statusCode int) {
 	if !w.wroteHeader {
 		w.statusCode = statusCode
 		w.ResponseWriter.WriteHeader(statusCode)
@@ -106,7 +103,7 @@ func (w *CustomResponseWriter) WriteHeader(statusCode int) {
 	}
 }
 
-func (w *CustomResponseWriter) Write(buf []byte) (int, error) {
+func (w *customResponseWriter) Write(buf []byte) (int, error) {
 	// default to 200 OK if statusCode was not written
 	if !w.wroteHeader {
 		w.WriteHeader(http.StatusOK)
@@ -129,7 +126,7 @@ func (h *BaseHandler) LogRequest(next http.Handler) http.Handler {
 		logger := slog.Default().With(slog.String(logutil.RequestIDLogKey, requestID))
 		r = ctxutil.SetLogger(r, logger)
 
-		ww := NewCustomResponseWriter(w)
+		ww := &customResponseWriter{ResponseWriter: w}
 
 		defer func() {
 			duration := time.Since(start)
@@ -146,5 +143,19 @@ func (h *BaseHandler) LogRequest(next http.Handler) http.Handler {
 		}()
 
 		next.ServeHTTP(ww, r)
+	})
+}
+
+func (h *BaseHandler) RecoverPanic(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				middleware.PrintPrettyStack(err)
+				w.Header().Set("Connection", "close")
+				h.renderErrorPage(w, r, http.StatusInternalServerError)
+			}
+		}()
+
+		next.ServeHTTP(w, r)
 	})
 }
