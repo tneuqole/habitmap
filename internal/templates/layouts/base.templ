@@ -1,6 +1,7 @@
 package layouts
 
 import (
+	"fmt"
 	"github.com/tneuqole/habitmap/internal/ctxutil"
 	"github.com/tneuqole/habitmap/internal/session"
 	"github.com/tneuqole/habitmap/internal/templates/components"
@@ -11,17 +12,29 @@ templ Base(data session.SessionData, title string) {
 		<head>
 			<title>{ title }</title>
 			<meta charset="UTF-8"/>
-			<link rel="stylesheet" href="/public/app.css"/>
-			<script src="https://unpkg.com/htmx.org@2.0.2"></script>
-			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+			<link rel="stylesheet" href="/public/css/app.css"/>
+			<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous" defer></script>
+			{{ nonce := ctxutil.GetNonce(ctx) }}
+			<meta
+				name="htmx-config"
+				content={ fmt.Sprintf(`{
+					"responseHandling": [
+						{"code":"204", "swap": false},
+						{"code":"[45]..", "swap": true, "error":true},
+						{"code":"...", "swap": true}
+					],
+					"inlineScriptNonce": "%s",
+					"inlineStyleNonce": "%s"
+				}`, nonce, nonce) }
+			/>
 		</head>
 		<body hx-boost="true" class="flex flex-col min-h-screen">
 			<header>
 				@components.Nav(data)
 			</header>
 			<main class="flex-1 m-4">
-				if appError, ok := ctxutil.GetAppError(ctx); ok {
-					@components.ErrorFlash(appError)
+				if err := ctxutil.GetAppError(ctx); err != nil {
+					@components.ErrorFlash(*err)
 				}
 				if data.Flash != nil {
 					@components.Flash(*data.Flash)

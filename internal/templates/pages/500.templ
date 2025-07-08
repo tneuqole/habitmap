@@ -1,0 +1,10 @@
+package pages
+
+import (
+	"github.com/tneuqole/habitmap/internal/session"
+	"github.com/tneuqole/habitmap/internal/templates/layouts"
+)
+
+templ Error500(data session.SessionData) {
+	@layouts.Error(data, "Internal Server Error", "An error occurred while processing your request.")
+}

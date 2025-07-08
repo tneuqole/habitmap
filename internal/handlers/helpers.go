@@ -18,9 +18,9 @@ import (
 	"github.com/go-playground/validator/v10/non-standard/validators"
 	"github.com/tneuqole/habitmap/internal/apperror"
 	"github.com/tneuqole/habitmap/internal/ctxutil"
+	"github.com/tneuqole/habitmap/internal/logutil"
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/session"
-	"github.com/tneuqole/habitmap/internal/util"
 )
 
 const (
@@ -29,7 +29,6 @@ const (
 )
 
 type BaseHandler struct {
-	Logger  *slog.Logger
 	Queries *model.Queries
 	Session *session.Manager
 }
@@ -63,8 +62,10 @@ func (h *BaseHandler) bindFormData(r *http.Request, dest any) error {
 	return nil
 }
 
-func (h *BaseHandler) handleDBError(err error) error {
-	h.Logger.Error("DATABASE_ERROR", util.ErrorSlog(err))
+func (h *BaseHandler) handleDBError(ctx context.Context, err error) error {
+	logger := ctxutil.GetLogger(ctx)
+
+	logger.Error("DATABASE_ERROR", logutil.ErrorSlog(err))
 	if errors.Is(err, sql.ErrNoRows) {
 		return apperror.New(http.StatusNotFound, "Resource does not exist")
 	}
@@ -95,9 +96,10 @@ func newValidate() *validator.Validate {
 
 var validate = newValidate()
 
-func (h *BaseHandler) parseValidationErrors(err error) map[string]string {
-	errMsgs := make(map[string]string)
+func (h *BaseHandler) parseValidationErrors(ctx context.Context, err error) map[string]string {
+	logger := ctxutil.GetLogger(ctx)
 
+	errMsgs := make(map[string]string)
 	var validationErrors validator.ValidationErrors
 	if errors.As(err, &validationErrors) {
 		for _, fieldErr := range validationErrors {
@@ -122,7 +124,7 @@ func (h *BaseHandler) parseValidationErrors(err error) map[string]string {
 			case "yearmonth":
 				msg = fmt.Sprintf("%s must be in the format YYYY or YYYY-MM", fieldErr.Field())
 			default:
-				h.Logger.Debug("default case", slog.String("type", fieldErr.Tag()))
+				logger.Debug("default case", slog.String("type", fieldErr.Tag()))
 				msg = fmt.Sprintf("%s is invalid", fieldErr.Field())
 			}
 			errMsgs[fieldErr.Field()] = msg
@@ -145,13 +147,15 @@ func (h *BaseHandler) parseValidationErrors(err error) map[string]string {
 // Returns:
 //
 //	[][]model.Entry: A 2D slice with weekly habit entries.
-func (h *BaseHandler) generateMonth(habitID int64, monthStr string, entries []model.Entry) [][]model.Entry {
+func (h *BaseHandler) generateMonth(ctx context.Context, habitID int64, monthStr string, entries []model.Entry) [][]model.Entry {
+	logger := ctxutil.GetLogger(ctx)
+
 	var month [][]model.Entry
 	week := make([]model.Entry, daysInWeek)
 
 	date, err := time.Parse("2006-01", monthStr)
 	if err != nil {
-		h.Logger.Error("Error parsing date", util.ErrorSlog(err))
+		logger.Error("Error parsing date", logutil.ErrorSlog(err))
 		return month
 	}
 
@@ -195,7 +199,7 @@ func (h *BaseHandler) bindAndValidateGetHabitParams(w http.ResponseWriter, r *ht
 
 	err := validate.Struct(&params)
 	if err != nil {
-		errors := h.parseValidationErrors(err)
+		errors := h.parseValidationErrors(r.Context(), err)
 		appErr := apperror.FromMap(http.StatusBadRequest, errors)
 		r = ctxutil.SetAppError(r, appErr)
 		w.WriteHeader(http.StatusBadRequest)
@@ -223,7 +227,9 @@ func (h *HabitHandler) fetchEntriesForView(ctx context.Context, habitID int64, v
 	}
 }
 
-func (h *HabitHandler) generateMonths(view, date string) ([]string, error) {
+func (h *HabitHandler) generateMonths(ctx context.Context, view, date string) ([]string, error) {
+	logger := ctxutil.GetLogger(ctx)
+
 	if view == "month" {
 		return []string{date}, nil
 	}
@@ -231,7 +237,7 @@ func (h *HabitHandler) generateMonths(view, date string) ([]string, error) {
 	// view = "year"
 	t, err := time.Parse("2006-01", date)
 	if err != nil {
-		h.Logger.Error("invalid date format", util.ErrorSlog(err))
+		logger.Error("invalid date format", logutil.ErrorSlog(err))
 		return nil, apperror.New(http.StatusBadRequest, "invalid date format")
 	}
 
@@ -247,7 +253,7 @@ func (h *HabitHandler) generateMonths(view, date string) ([]string, error) {
 	return months, nil
 }
 
-func (h *HabitHandler) groupEntriesByMonth(habitID int64, entries []model.Entry, sortedMonths []string) map[string][][]model.Entry {
+func (h *HabitHandler) groupEntriesByMonth(ctx context.Context, habitID int64, entries []model.Entry, sortedMonths []string) map[string][][]model.Entry {
 	entriesByMonthMap := make(map[string][]model.Entry)
 	for _, entry := range entries {
 		key := entry.EntryDate[:7] // YYYY-MM
@@ -256,7 +262,7 @@ func (h *HabitHandler) groupEntriesByMonth(habitID int64, entries []model.Entry,
 
 	months := make(map[string][][]model.Entry)
 	for _, month := range sortedMonths {
-		months[month] = h.generateMonth(habitID, month, entriesByMonthMap[month])
+		months[month] = h.generateMonth(ctx, habitID, month, entriesByMonthMap[month])
 	}
 	return months
 }

@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"github.com/tneuqole/habitmap/internal/ctxutil"
 	"github.com/tneuqole/habitmap/internal/model"
 	"github.com/tneuqole/habitmap/internal/session"
 	"github.com/tneuqole/habitmap/internal/templates"
@@ -75,21 +76,22 @@ templ Habit(data session.SessionData, habit model.Habit, view, date string, mont
 							Month
 						</div>
 					</div>
-					<div class="" x-data="{ open: false }">
+					<div>
+						<script src="/public/js/edit_habit_menu.js" type="module"></script>
+						<script nonce={ ctxutil.GetNonce(ctx) } type="module">
+							import { editHabitMenu } from "/public/js/edit_habit_menu.js";
+							editHabitMenu();
+						</script>
 						<button
-							@click="open = !open"
+							id="edit-habit-btn"
 							type="button"
 							class="w-8 h-8 self-start bg-blue-600 text-center text-white font-medium my-2 py-1 rounded-md hover:bg-blue-700 transition"
-							id="menu-button"
-							aria-expanded="true"
-							aria-haspopup="true"
 						>
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								class="block m-auto h-6 w-6"
 								viewBox="0 0 24 24"
 								fill="currentColor"
-								aria-hidden="true"
 							>
 								<circle cx="6" cy="12" r="2"></circle>
 								<circle cx="12" cy="12" r="2"></circle>
@@ -97,18 +99,14 @@ templ Habit(data session.SessionData, habit model.Habit, view, date string, mont
 							</svg>
 						</button>
 						<div
-							x-show="open"
-							@click.away="open = false"
+							id="edit-habit-dropdown"
 							class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-							role="menu"
-							aria-orientation="vertical"
-							aria-labelledby="menu-button"
+							hidden
 						>
-							<div class="py-1" role="none">
+							<div class="py-1">
 								<a
 									href={ templ.URL(fmt.Sprintf("/habits/%d/edit", habit.ID)) }
 									class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-									role="menuitem"
 								>
 									Edit
 								</a>

@@ -1,0 +1,11 @@
+
+package pages
+
+import (
+	"github.com/tneuqole/habitmap/internal/session"
+	"github.com/tneuqole/habitmap/internal/templates/layouts"
+)
+
+templ Error429(data session.SessionData) {
+	@layouts.Error(data, "Too Many Requests", "You have sent too many requests. Please wait a few seconds and try again.")
+}

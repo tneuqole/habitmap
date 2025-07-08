@@ -18,8 +18,8 @@ coverage: test
 
 .PHONY: build
 build:
-	esbuild assets/*.js --minify --outdir=public
-	npx tailwindcss -i ./assets/app.css -o ./public/app.css
+	esbuild assets/js/*.js --minify --outdir=public/js
+	npx tailwindcss -i ./assets/css/app.css -o ./public/css/app.css
 	templ generate
 
 .PHONY: dev
