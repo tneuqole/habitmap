@@ -66,15 +66,22 @@ func (h *BaseHandler) handleDBError(ctx context.Context, err error) error {
 	logger := ctxutil.GetLogger(ctx)
 
 	logger.Error("DATABASE_ERROR", logutil.ErrorSlog(err))
-	if errors.Is(err, sql.ErrNoRows) {
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
 		return apperror.New(http.StatusNotFound, "Resource does not exist")
-	}
 
-	if strings.Contains(err.Error(), "UNIQUE constraint failed: users.email") {
+	case errors.Is(err, context.DeadlineExceeded):
+		return apperror.New(http.StatusGatewayTimeout, "Timeout exceeded during database query")
+
+	case errors.Is(err, context.Canceled):
+		return nil // client closed connection
+
+	case strings.Contains(err.Error(), "UNIQUE constraint failed: users.email"):
 		return apperror.ErrDuplicateEmail
-	}
 
-	return apperror.New(http.StatusInternalServerError, "Error reading from database")
+	default:
+		return apperror.New(http.StatusInternalServerError, "Error reading from database")
+	}
 }
 
 // checks if the date matches "YYYY-MM" format

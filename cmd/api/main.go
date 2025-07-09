@@ -66,6 +66,7 @@ func main() {
 		}),
 	))
 
+	r.Use(h.Timeout(3 * time.Second)) //nolint:mnd
 	r.Use(h.RecoverPanic)
 
 	// TODO: custom timeout middleware with error page
