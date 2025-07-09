@@ -53,7 +53,7 @@ func (h *UserHandler) PostSignup(w http.ResponseWriter, r *http.Request) error {
 	}
 	userID, err := h.Queries.CreateUser(r.Context(), params)
 	if err != nil {
-		err = h.handleDBError(r.Context(), err)
+		err = h.handleDBError(err)
 		if errors.Is(err, apperror.ErrDuplicateEmail) {
 			form.AddFieldError("Email", apperror.ErrDuplicateEmail.Message)
 			return h.render(w, r, formcomponents.Signup(sessionData, form))
@@ -130,7 +130,7 @@ func (h *UserHandler) GetAccount(w http.ResponseWriter, r *http.Request) error {
 
 	user, err := h.Queries.GetUserByID(r.Context(), *sessionData.UserID)
 	if err != nil {
-		return h.handleDBError(r.Context(), err)
+		return h.handleDBError(err)
 	}
 
 	return h.render(w, r, pages.Account(sessionData, user))

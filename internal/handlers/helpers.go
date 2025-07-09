@@ -62,16 +62,13 @@ func (h *BaseHandler) bindFormData(r *http.Request, dest any) error {
 	return nil
 }
 
-func (h *BaseHandler) handleDBError(ctx context.Context, err error) error {
-	logger := ctxutil.GetLogger(ctx)
-
-	logger.Error("DATABASE_ERROR", logutil.ErrorSlog(err))
+func (h *BaseHandler) handleDBError(err error) error {
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return apperror.New(http.StatusNotFound, "Resource does not exist")
+		return apperror.NewWrap(http.StatusNotFound, "Resource does not exist", err)
 
 	case errors.Is(err, context.DeadlineExceeded):
-		return apperror.New(http.StatusGatewayTimeout, "Timeout exceeded during database query")
+		return apperror.NewWrap(http.StatusGatewayTimeout, "Timeout exceeded during database query", err)
 
 	case errors.Is(err, context.Canceled):
 		return nil // client closed connection
@@ -80,7 +77,7 @@ func (h *BaseHandler) handleDBError(ctx context.Context, err error) error {
 		return apperror.ErrDuplicateEmail
 
 	default:
-		return apperror.New(http.StatusInternalServerError, "Error reading from database")
+		return apperror.NewWrap(http.StatusInternalServerError, "Error reading from database", err)
 	}
 }
 
